@@ -1,0 +1,192 @@
+{
+  "lat": 42.3601,
+  "lng": -71.0589,
+  "in_massachusetts": true,
+  "retrieved_at": "2026-10-24T18:52:33.698069Z",
+  "from_fixture": false,
+  "groups": [
+    {
+      "name": "residential",
+      "source": "osm_overpass",
+      "metrics": [
+        {
+          "key": "residential_count",
+          "label": "Residential features within 1000 m",
+          "value": 638,
+          "unit": "count",
+          "source": "osm_overpass",
+          "status": "ok",
+          "missing_reason": null
+        },
+        {
+          "key": "nearest_residential_m",
+          "label": "Distance to nearest residential feature",
+          "value": 242.7,
+          "unit": "m",
+          "source": "osm_overpass",
+          "status": "ok",
+          "missing_reason": null
+        },
+        {
+          "key": "residential_density_per_km2",
+          "label": "Residential features per km\u00b2",
+          "value": 203.08,
+          "unit": "features/km^2",
+          "source": "osm_overpass",
+          "status": "ok",
+          "missing_reason": null
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "population",
+      "source": "us_census",
+      "metrics": [
+        {
+          "key": "population_density_per_km2",
+          "label": "Population density",
+          "value": null,
+          "unit": "people/km^2",
+          "source": "us_census",
+          "status": "missing_api_error",
+          "missing_reason": "Census ACS5 now requires an API key \u2014 set CENSUS_API_KEY (free at https://api.census.gov/data/key_signup.html) (http_error: Census API key required)."
+        },
+        {
+          "key": "tract_population",
+          "label": "Census tract total population (ACS 5-yr)",
+          "value": null,
+          "unit": "people",
+          "source": "us_census",
+          "status": "missing_api_error",
+          "missing_reason": "Census ACS5 now requires an API key \u2014 set CENSUS_API_KEY (free at https://api.census.gov/data/key_signup.html) (http_error: Census API key required)."
+        },
+        {
+          "key": "tract_fips",
+          "label": "Census tract FIPS / GEOID",
+          "value": null,
+          "unit": null,
+          "source": "us_census",
+          "status": "missing_api_error",
+          "missing_reason": "Census ACS5 now requires an API key \u2014 set CENSUS_API_KEY (free at https://api.census.gov/data/key_signup.html) (http_error: Census API key required)."
+        }
+      ],
+      "error": "Census ACS5 now requires an API key \u2014 set CENSUS_API_KEY (free at https://api.census.gov/data/key_signup.html) (http_error: Census API key required)."
+    },
+    {
+      "name": "flood",
+      "source": "fema_nfhl",
+      "metrics": [
+        {
+          "key": "flood_zone",
+          "label": "FEMA flood zone",
+          "value": "X",
+          "unit": null,
+          "source": "fema_nfhl",
+          "status": "ok",
+          "missing_reason": null
+        },
+        {
+          "key": "in_special_flood_hazard_area",
+          "label": "Within Special Flood Hazard Area",
+          "value": 0,
+          "unit": "boolean(1/0)",
+          "source": "fema_nfhl",
+          "status": "ok",
+          "missing_reason": null
+        },
+        {
+          "key": "flood_risk_category",
+          "label": "Coarse flood-risk category",
+          "value": "low",
+          "unit": null,
+          "source": "fema_nfhl",
+          "status": "ok",
+          "missing_reason": null
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "landuse",
+      "source": "massgis",
+      "metrics": [
+        {
+          "key": "land_use_code",
+          "label": "Land use code",
+          "value": null,
+          "unit": null,
+          "source": "massgis",
+          "status": "missing_not_implemented",
+          "missing_reason": "MassGIS land-use layer URL is not configured (set MASSGIS_LANDUSE_URL). Land-use is a secondary source; priority metrics are unaffected."
+        },
+        {
+          "key": "land_use_description",
+          "label": "Land use description",
+          "value": null,
+          "unit": null,
+          "source": "massgis",
+          "status": "missing_not_implemented",
+          "missing_reason": "MassGIS land-use layer URL is not configured (set MASSGIS_LANDUSE_URL). Land-use is a secondary source; priority metrics are unaffected."
+        },
+        {
+          "key": "parcel_area_m2",
+          "label": "Parcel area",
+          "value": null,
+          "unit": "m^2",
+          "source": "massgis",
+          "status": "missing_not_implemented",
+          "missing_reason": "MassGIS land-use layer URL is not configured (set MASSGIS_LANDUSE_URL). Land-use is a secondary source; priority metrics are unaffected."
+        }
+      ],
+      "error": "MassGIS land-use layer URL is not configured (set MASSGIS_LANDUSE_URL). Land-use is a secondary source; priority metrics are unaffected."
+    },
+    {
+      "name": "temperature",
+      "source": "open_meteo",
+      "metrics": [
+        {
+          "key": "mean_temp_c",
+          "label": "Mean daily temperature (trailing ~1yr)",
+          "value": 10.49,
+          "unit": "\u00b0C",
+          "source": "open_meteo",
+          "status": "ok",
+          "missing_reason": null
+        },
+        {
+          "key": "max_temp_c",
+          "label": "Max daily temperature (trailing ~1yr)",
+          "value": 37.4,
+          "unit": "\u00b0C",
+          "source": "open_meteo",
+          "status": "ok",
+          "missing_reason": null
+        },
+        {
+          "key": "min_temp_c",
+          "label": "Min daily temperature (trailing ~1yr)",
+          "value": -17.7,
+          "unit": "\u00b0C",
+          "source": "open_meteo",
+          "status": "ok",
+          "missing_reason": null
+        },
+        {
+          "key": "sample_days",
+          "label": "Number of days sampled",
+          "value": 366,
+          "unit": "days",
+          "source": "open_meteo",
+          "status": "ok",
+          "missing_reason": null
+        }
+      ],
+      "error": null
+    }
+  ],
+  "warnings": [
+    "Source 'population' failed: Census ACS5 now requires an API key \u2014 set CENSUS_API_KEY (free at https://api.census.gov/data/key_signup.html) (http_error: Census API key required).",
+    "Source 'landuse' failed: MassGIS land-use layer URL is not configured (set MASSGIS_LANDUSE_URL). Land-use is a secondary source; priority metrics are unaffected."
+  ]
+}

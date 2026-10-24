@@ -38,6 +38,17 @@ class Settings(BaseSettings):
     fema_api_base: str = "https://www.fema.gov/api/open"
     osm_overpass_url: str = "https://overpass-api.de/api/interpreter"
 
+    # FEMA National Flood Hazard Layer (NFHL) ArcGIS REST service (public).
+    # Distinct from fema_api_base (openFEMA); used by the flood data source.
+    fema_nfhl_url: str = (
+        "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+    )
+
+    # MassGIS land-use / parcel ArcGIS layer query URL (optional, secondary
+    # source). Leave unset until the exact published layer is confirmed; the
+    # land-use source degrades gracefully when this is empty.
+    massgis_landuse_url: str | None = None
+
     @property
     def cors_origins_list(self) -> list[str]:
         """Return CORS origins as a cleaned list."""
