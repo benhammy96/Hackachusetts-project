@@ -16,21 +16,23 @@ Built for the Climate Tech track (6 hours). This is a phased product and build s
 
 ## 2. Users
 
-| User | Question | What Atlas gives them |
-| --- | --- | --- |
-| Resident or select board | Should we fight or welcome this proposal? | Plain-language brief and score breakdown |
-| Developer or utility planner | Where can we build without a long fight? | Fatal-flaw screening and EO 658 checklist |
-| State planner or journalist | Where should MA steer data centers? | Statewide heat map of best and worst zones |
+| User                         | Question                                  | What Atlas gives them                      |
+| ---------------------------- | ----------------------------------------- | ------------------------------------------ |
+| Resident or select board     | Should we fight or welcome this proposal? | Plain-language brief and score breakdown   |
+| Developer or utility planner | Where can we build without a long fight?  | Fatal-flaw screening and EO 658 checklist  |
+| State planner or journalist  | Where should MA steer data centers?       | Statewide heat map of best and worst zones |
 
 ## 3. Goals and non-goals
 
 **Goals**
+
 - Click anywhere in MA, pick a size, get an explainable score in under 200 ms.
 - Show both lenses (Buildability and Community) and where they disagree.
 - Generate a town-meeting brief in 6 languages with an EO 658 checklist.
 - Look polished on a projector and in a 90-second LinkedIn video.
 
 **Non-goals**
+
 - Parcel-level legal or engineering accuracy (candidate parcel mode is screening only).
 - Real interconnection queue data or utility hosting capacity.
 - User accounts, saving sites, or a database in the six-hour MVP; PostGIS is a later option.
@@ -57,27 +59,27 @@ Atlas = min(10, X * B^a * C^(1 - a) + bonus)
 
 ### 4.2 Factors
 
-| Lens | Factor | Weight | Formula for f (0 to 1) |
-| --- | --- | --- | --- |
-| Buildability | Grid access | 35 | `clamp(1 - (d_km - 1) / 14)` where `d_km` is distance to a transmission line at the required voltage (see 4.3) |
-| Buildability | Clean power access | 25 | `clamp(1 - d_clean_km / 30)`, +0.2 if in a municipal light plant town. If MW <= 25, `f = max(f, 0.6)` (EO 658 not triggered) |
-| Buildability | Fiber and latency | 20 | `clamp(1 - d_fiber_km / 20)` |
-| Buildability | Land readiness | 20 | By land class: industrial 1.0, brownfield 1.0, commercial 0.8, other developed 0.5, agriculture 0.3, forest 0.1, residential 0.0 |
-| Community | Residents nearby | 30 | `clamp(1 - pop_1km / P)` where P = 8000 (5 MW), 5000 (25 MW), 3000 (100 MW), 1500 (300 MW). Subtract 0.3 if a school or hospital is within 500 m |
-| Community | Environmental justice | 30 | In an EJ block group: 0.0. Within 1 mile of one: 0.4. Else `0.6 + 0.4 * clamp(d_ej_km / 8)` |
-| Community | Water | 20 | `base = 1 - water_stress` (stressed 0.7, medium 0.4, low 0.1). Subtract 0.3 if within 1 km of a drinking water Zone II. If cooling is evaporative, subtract `0.3 * mw / 300` |
-| Community | Climate risk | 20 | 0.5 if in the 0.2% (500-year) floodplain, 0.4 if in coastal sea level rise exposure, else 1.0. Take the minimum |
+| Lens         | Factor                | Weight | Formula for f (0 to 1)                                                                                                                                                       |
+| ------------ | --------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Buildability | Grid access           | 35     | `clamp(1 - (d_km - 1) / 14)` where `d_km` is distance to a transmission line at the required voltage (see 4.3)                                                               |
+| Buildability | Clean power access    | 25     | `clamp(1 - d_clean_km / 30)`, +0.2 if in a municipal light plant town. If MW <= 25, `f = max(f, 0.6)` (EO 658 not triggered)                                                 |
+| Buildability | Fiber and latency     | 20     | `clamp(1 - d_fiber_km / 20)`                                                                                                                                                 |
+| Buildability | Land readiness        | 20     | By land class: industrial 1.0, brownfield 1.0, commercial 0.8, other developed 0.5, agriculture 0.3, forest 0.1, residential 0.0                                             |
+| Community    | Residents nearby      | 30     | `clamp(1 - pop_1km / P)` where P = 8000 (5 MW), 5000 (25 MW), 3000 (100 MW), 1500 (300 MW). Subtract 0.3 if a school or hospital is within 500 m                             |
+| Community    | Environmental justice | 30     | In an EJ block group: 0.0. Within 1 mile of one: 0.4. Else `0.6 + 0.4 * clamp(d_ej_km / 8)`                                                                                  |
+| Community    | Water                 | 20     | `base = 1 - water_stress` (stressed 0.7, medium 0.4, low 0.1). Subtract 0.3 if within 1 km of a drinking water Zone II. If cooling is evaporative, subtract `0.3 * mw / 300` |
+| Community    | Climate risk          | 20     | 0.5 if in the 0.2% (500-year) floodplain, 0.4 if in coastal sea level rise exposure, else 1.0. Take the minimum                                                              |
 
 `clamp(x)` means clamp to [0, 1].
 
 ### 4.3 Size scaling (MW presets)
 
-| Preset | MW | Required transmission voltage | EO 658 applies |
-| --- | --- | --- | --- |
-| Edge | 5 | 69 kV or higher | No |
-| Enterprise | 25 | 69 kV or higher | No (threshold is above 25 MW) |
-| Campus | 100 | 115 kV or higher | Yes |
-| Hyperscale | 300 | 345 kV or higher | Yes |
+| Preset     | MW  | Required transmission voltage | EO 658 applies                |
+| ---------- | --- | ----------------------------- | ----------------------------- |
+| Edge       | 5   | 69 kV or higher               | No                            |
+| Enterprise | 25  | 69 kV or higher               | No (threshold is above 25 MW) |
+| Campus     | 100 | 115 kV or higher              | Yes                           |
+| Hyperscale | 300 | 345 kV or higher              | Yes                           |
 
 These voltage thresholds are our modeling assumptions, not engineering rules. Say so in the UI tooltip.
 
@@ -96,13 +98,13 @@ These voltage thresholds are our modeling assumptions, not engineering rules. Sa
 
 ### 4.6 Score bands
 
-| Score | Label | Color |
-| --- | --- | --- |
-| 8.0 to 10 | Strong site | Green `#22C55E` |
-| 6.0 to 7.9 | Workable with conditions | Lime `#A3E635` |
-| 4.0 to 5.9 | Contested: expect a fight | Amber `#F5A524` |
-| 0.1 to 3.9 | Do not build here | Red `#E5484D` |
-| 0 | Fatal flaw | Zinc `#3F3F46` |
+| Score      | Label                    | Color           |
+| ---------- | ------------------------ | --------------- |
+| 8.0 to 10  | Strong site              | Green `#22C55E` |
+| 6.0 to 7.9 | Workable with conditions | Lime `#A3E635`  |
+| 4.0 to 5.9 | Contested site           | Amber `#F5A524` |
+| 0.1 to 3.9 | Do not build here        | Red `#E5484D`   |
+| 0          | Fatal flaw               | Zinc `#3F3F46`  |
 
 ### 4.7 Invariants (must be property-tested)
 
@@ -115,11 +117,11 @@ These voltage thresholds are our modeling assumptions, not engineering rules. Sa
 
 ### 4.8 Calibration sites (must be unit-tested)
 
-| Site | Approx. lat, lng | MW | Expected |
-| --- | --- | --- | --- |
+| Site                                  | Approx. lat, lng  | MW  | Expected                                                                                                                                                                                          |
+| ------------------------------------- | ----------------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Holyoke, near MGHPCC (100 Bigelow St) | 42.2025, -72.6079 | 100 | 6.0 or higher. Note: downtown Holyoke has EJ block groups, so "Contested" is acceptable; if so, the demo story becomes "even the state's model green data center would face hard questions today" |
-| Chelsea, residential | 42.3918, -71.0328 | 100 | Below 4.0 |
-| Quabbin Reservoir | 42.3800, -72.2900 | any | Exactly 0, reason "Protected drinking water" |
+| Chelsea, residential                  | 42.3918, -71.0328 | 100 | Below 4.0                                                                                                                                                                                         |
+| Quabbin Reservoir                     | 42.3800, -72.2900 | any | Exactly 0, reason "Protected drinking water"                                                                                                                                                      |
 
 Design principle: **environmental justice is a protection, never an advantage.** Low-income or cheap land in a burdened neighborhood must always lower the score.
 
@@ -167,18 +169,18 @@ Use `null` for any value with no data. If the file exceeds about 5 MB, switch to
 
 ### 5.3 Sources
 
-| Field(s) | Dataset | Fallback |
-| --- | --- | --- |
-| `d_tx*_km` | OpenStreetMap `power=line` with `voltage` tag (Overpass API) | HIFLD transmission lines archive (HIFLD Open was deactivated Aug 26, 2025) |
-| `d_clean_km`, `mlp_town` | EIA-860 plant list; MassGIS Public Utility Service Providers | ~15 hand-entered clean generation points |
-| `d_fiber_km` | MassGIS / MassDOT interstate centerlines (I-90, I-95/128, I-495, I-91) | OSM `highway=motorway` |
-| `land_class`, `brownfield` | MassGIS 2016 Land Cover/Land Use | OSM `landuse=*` |
-| `pop_1km`, `in_ej`, `near_ej_1mi`, `d_ej_km` | MassGIS 2020 Environmental Justice Populations (includes TOTAL_POP) | Census API block groups |
-| `school_or_hospital_500m` | MassGIS schools and hospitals | OSM `amenity=school|hospital` |
-| `water_stress`, `d_dw_zone2_km` | MassGIS drainage sub-basins + WRC Stressed Basins; MassDEP Zone II / Zone A | WRI Aqueduct baseline water stress |
-| `flood_500yr`, `coastal_slr` | FEMA National Flood Hazard Layer | Elevation under 3 m within 2 km of coast |
-| `excluded` (open space) | MassGIS Protected and Recreational OpenSpace (has Article 97 field), EEA ArcGIS REST service | OSM `boundary=protected_area` |
-| `excluded` (wetlands) | MassDEP Wetlands | OSM `natural=wetland` |
+| Field(s)                                     | Dataset                                                                                      | Fallback                                                                   |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | --------- |
+| `d_tx*_km`                                   | OpenStreetMap `power=line` with `voltage` tag (Overpass API)                                 | HIFLD transmission lines archive (HIFLD Open was deactivated Aug 26, 2025) |
+| `d_clean_km`, `mlp_town`                     | EIA-860 plant list; MassGIS Public Utility Service Providers                                 | ~15 hand-entered clean generation points                                   |
+| `d_fiber_km`                                 | MassGIS / MassDOT interstate centerlines (I-90, I-95/128, I-495, I-91)                       | OSM `highway=motorway`                                                     |
+| `land_class`, `brownfield`                   | MassGIS 2016 Land Cover/Land Use                                                             | OSM `landuse=*`                                                            |
+| `pop_1km`, `in_ej`, `near_ej_1mi`, `d_ej_km` | MassGIS 2020 Environmental Justice Populations (includes TOTAL_POP)                          | Census API block groups                                                    |
+| `school_or_hospital_500m`                    | MassGIS schools and hospitals                                                                | OSM `amenity=school                                                        | hospital` |
+| `water_stress`, `d_dw_zone2_km`              | MassGIS drainage sub-basins + WRC Stressed Basins; MassDEP Zone II / Zone A                  | WRI Aqueduct baseline water stress                                         |
+| `flood_500yr`, `coastal_slr`                 | FEMA National Flood Hazard Layer                                                             | Elevation under 3 m within 2 km of coast                                   |
+| `excluded` (open space)                      | MassGIS Protected and Recreational OpenSpace (has Article 97 field), EEA ArcGIS REST service | OSM `boundary=protected_area`                                              |
+| `excluded` (wetlands)                        | MassDEP Wetlands                                                                             | OSM `natural=wetland`                                                      |
 
 ### 5.4 Pipeline (`pipeline/build_hexes.py`)
 
@@ -257,18 +259,18 @@ The brief opens as a slide-over panel on top of the score card, with language ch
 
 ### 7.2 Design tokens
 
-| Token | Value |
-| --- | --- |
-| Background | `#0A0B0D` |
-| Surface (glass) | `rgba(255,255,255,0.06)` with `backdrop-filter: blur(16px)` |
-| Border | `rgba(255,255,255,0.10)` |
-| Text | `#F5F5F5` |
-| Muted text | `#A1A1AA` |
-| Accent (hackathon orange) | `#F0A93B` |
-| Score ramp | `#E5484D` red, `#F5A524` amber, `#A3E635` lime, `#22C55E` green, `#3F3F46` fatal |
-| Display font | Anton (Google Fonts), uppercase, for the app name and the big score |
-| Body font | Inter |
-| Radius | 12 px panels, 999 px chips |
+| Token                     | Value                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------- |
+| Background                | `#0A0B0D`                                                                        |
+| Surface (glass)           | `rgba(255,255,255,0.06)` with `backdrop-filter: blur(16px)`                      |
+| Border                    | `rgba(255,255,255,0.10)`                                                         |
+| Text                      | `#F5F5F5`                                                                        |
+| Muted text                | `#A1A1AA`                                                                        |
+| Accent (hackathon orange) | `#F0A93B`                                                                        |
+| Score ramp                | `#E5484D` red, `#F5A524` amber, `#A3E635` lime, `#22C55E` green, `#3F3F46` fatal |
+| Display font              | Anton (Google Fonts), uppercase, for the app name and the big score              |
+| Body font                 | Inter                                                                            |
+| Radius                    | 12 px panels, 999 px chips                                                       |
 
 ### 7.3 Accessibility
 
@@ -294,34 +296,40 @@ Server (Next.js API route)                                            v
 
 ### 8.1 Stack
 
-| Layer | Choice |
-| --- | --- |
-| App | Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui |
-| Map | MapLibre GL JS, deck.gl (`H3HexagonLayer` extruded, `PolygonLayer` extruded for the building, `ArcLayer`, `PathLayer`) |
-| Basemap | CARTO Dark Matter (or MapTiler dark) |
-| Geo | h3-js, @turf/turf |
-| Data prep | Python 3.11, geopandas, h3, shapely, requests (Overpass) |
-| AI | Amazon Bedrock, Claude model, Converse API with tool use (`@aws-sdk/client-bedrock-runtime`) |
-| Tests | Vitest, fast-check |
-| Hosting | AWS Amplify Hosting (Vercel as backup) |
+| Layer     | Choice                                                                                                                 |
+| --------- | ---------------------------------------------------------------------------------------------------------------------- |
+| App       | Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui                                                              |
+| Map       | MapLibre GL JS, deck.gl (`H3HexagonLayer` extruded, `PolygonLayer` extruded for the building, `ArcLayer`, `PathLayer`) |
+| Basemap   | CARTO Dark Matter (or MapTiler dark)                                                                                   |
+| Geo       | h3-js, @turf/turf                                                                                                      |
+| Data prep | Python 3.11, geopandas, h3, shapely, requests (Overpass)                                                               |
+| AI        | Amazon Bedrock, Claude model, Converse API with tool use (`@aws-sdk/client-bedrock-runtime`)                           |
+| Tests     | Vitest, fast-check                                                                                                     |
+| Hosting   | AWS Amplify Hosting (Vercel as backup)                                                                                 |
 
 ### 8.2 API contract
 
 `POST /api/brief`
 
 ```json
-{ "h3": "882a306a2bfffff", "mw": 100, "cooling": "evaporative", "lens": "balanced", "lang": "en" }
+{
+  "h3": "882a306a2bfffff",
+  "mw": 100,
+  "cooling": "evaporative",
+  "lens": "balanced",
+  "lang": "en"
+}
 ```
 
 Response: `text/event-stream` of markdown.
 
 Tools the agent can call (all run server-side using the same `lib/score.ts` and `hexes.json`):
 
-| Tool | Input | Output |
-| --- | --- | --- |
-| `get_site_score` | `h3, mw, cooling, lens` | Full score card: score, band, B, C, factors with raw facts, bonuses, exclusion |
-| `get_eo658_checklist` | `mw` | List of requirements that apply at that size (empty list at 25 MW or below, with a note) |
-| `find_alternatives` | `h3, mw, cooling, lens, radius_km = 25, k = 3` | Top k higher-scoring, non-excluded hexes with town, score, and one-line reason |
+| Tool                  | Input                                          | Output                                                                                   |
+| --------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `get_site_score`      | `h3, mw, cooling, lens`                        | Full score card: score, band, B, C, factors with raw facts, bonuses, exclusion           |
+| `get_eo658_checklist` | `mw`                                           | List of requirements that apply at that size (empty list at 25 MW or below, with a note) |
+| `find_alternatives`   | `h3, mw, cooling, lens, radius_km = 25, k = 3` | Top k higher-scoring, non-excluded hexes with town, score, and one-line reason           |
 
 System prompt rules: plain language, no invented numbers, cite factor names, exactly 5 questions, end with "Scores are a planning aid, not a permitting decision."
 
@@ -359,12 +367,12 @@ atlas/
 
 ### 10.2 Hooks
 
-| Trigger | Action |
-| --- | --- |
-| Save `lib/score.ts` | Run Vitest: unit, property, and calibration tests |
+| Trigger                          | Action                                                             |
+| -------------------------------- | ------------------------------------------------------------------ |
+| Save `lib/score.ts`              | Run Vitest: unit, property, and calibration tests                  |
 | Save `.kiro/steering/scoring.md` | Regenerate `lib/weights.ts` from the weights table, then run tests |
-| Create a file in `components/` | Review for accessibility rules in `design.md` |
-| Save `pipeline/*.py` | Update `data-sources.md` with any new `hexes.json` field |
+| Create a file in `components/`   | Review for accessibility rules in `design.md`                      |
+| Save `pipeline/*.py`             | Update `data-sources.md` with any new `hexes.json` field           |
 
 ### 10.3 MCP servers
 
@@ -376,15 +384,15 @@ atlas/
 
 ## 11. Build plan (6 hours, 4 roles)
 
-| Time | Data | Map and UI | Score engine | Agent and story |
-| --- | --- | --- | --- | --- |
-| 0:00 to 0:30 | Start Overpass and EJ downloads | Scaffold Next.js, Tailwind, deck.gl | Steering files (everyone) | Confirm Bedrock access |
-| 0:30 to 2:00 | First `hexes.json` with 3 factors by 1:15 | 3D hex layer, click handler, MW chips | `score.ts` + invariant tests green | `/api/brief` stub |
-| 2:00 to 3:30 | Remaining factors and exclusions | Score card, factor rows, building drop | Calibration tests, tune weights | Real tools and brief |
-| **3:30** | **Checkpoint: full golden path works** | | | |
-| 3:30 to 5:00 | QA 10 random hexes | flyTo, count-up, lens toggle | Steering-to-weights hook | Languages, Find a better spot |
-| 5:00 to 5:30 | Freeze; cache demo briefs | Final visual pass at 1280 x 720 | README | Rehearse demo twice |
-| 5:30 to 6:00 | Record 90 s video, submit | | | |
+| Time         | Data                                      | Map and UI                             | Score engine                       | Agent and story               |
+| ------------ | ----------------------------------------- | -------------------------------------- | ---------------------------------- | ----------------------------- |
+| 0:00 to 0:30 | Start Overpass and EJ downloads           | Scaffold Next.js, Tailwind, deck.gl    | Steering files (everyone)          | Confirm Bedrock access        |
+| 0:30 to 2:00 | First `hexes.json` with 3 factors by 1:15 | 3D hex layer, click handler, MW chips  | `score.ts` + invariant tests green | `/api/brief` stub             |
+| 2:00 to 3:30 | Remaining factors and exclusions          | Score card, factor rows, building drop | Calibration tests, tune weights    | Real tools and brief          |
+| **3:30**     | **Checkpoint: full golden path works**    |                                        |                                    |                               |
+| 3:30 to 5:00 | QA 10 random hexes                        | flyTo, count-up, lens toggle           | Steering-to-weights hook           | Languages, Find a better spot |
+| 5:00 to 5:30 | Freeze; cache demo briefs                 | Final visual pass at 1280 x 720        | README                             | Rehearse demo twice           |
+| 5:30 to 6:00 | Record 90 s video, submit                 |                                        |                                    |                               |
 
 **Cut order if behind:** Compare mode, then languages (keep EN + ES), then weight sliders (keep lens presets), then Find a better spot, then statewide coverage (fall back to Greater Boston + Pioneer Valley).
 
@@ -423,16 +431,16 @@ atlas/
 
 ## 13. Demo script (3 minutes)
 
-| Time | Say | Do |
-| --- | --- | --- |
-| 0:00 | "Six weeks ago Massachusetts required every big data center to win community approval and bring its own clean power. Nobody has a tool to tell a town if a site is good or bad. We built one." | Fly-in over the 3D map |
-| 0:30 | "Let's put a 100 MW campus in Holyoke." | Click Holyoke; score lands |
-| 0:50 | "That's where BU, MIT, and Harvard already run research computing, on river hydropower." | Point at the factors |
-| 1:05 | "Same building in Chelsea." | Click Chelsea; red; read the callout |
-| 1:30 | "What should residents ask?" | Generate brief; switch to Spanish |
-| 1:50 | "And Quabbin?" | Click; Fatal flaw |
-| 2:05 | "Built spec-first in Kiro." | Show `.kiro/`; edit a weight in `scoring.md`; hook regenerates code; map reshapes |
-| 2:40 | "Any of 351 towns can use this before a developer knocks." | Close on statewide map |
+| Time | Say                                                                                                                                                                                            | Do                                                                                |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| 0:00 | "Six weeks ago Massachusetts required every big data center to win community approval and bring its own clean power. Nobody has a tool to tell a town if a site is good or bad. We built one." | Fly-in over the 3D map                                                            |
+| 0:30 | "Let's put a 100 MW campus in Holyoke."                                                                                                                                                        | Click Holyoke; score lands                                                        |
+| 0:50 | "That's where BU, MIT, and Harvard already run research computing, on river hydropower."                                                                                                       | Point at the factors                                                              |
+| 1:05 | "Same building in Chelsea."                                                                                                                                                                    | Click Chelsea; red; read the callout                                              |
+| 1:30 | "What should residents ask?"                                                                                                                                                                   | Generate brief; switch to Spanish                                                 |
+| 1:50 | "And Quabbin?"                                                                                                                                                                                 | Click; Fatal flaw                                                                 |
+| 2:05 | "Built spec-first in Kiro."                                                                                                                                                                    | Show `.kiro/`; edit a weight in `scoring.md`; hook regenerates code; map reshapes |
+| 2:40 | "Any of 351 towns can use this before a developer knocks."                                                                                                                                     | Close on statewide map                                                            |
 
 ---
 
@@ -459,7 +467,6 @@ atlas/
 - MGHPCC: https://en.wikipedia.org/wiki/Massachusetts_Green_High_Performance_Computing_Center
 - Prior art, dc-siting (H3 suitability map): https://github.com/ajay1808/dc-siting
 
-
 ---
 
 ## 16. Expanded Atlas: real parcel discovery and development intelligence
@@ -476,27 +483,27 @@ atlas/
 
 ### 16.2 Data source and API catalog
 
-| Domain | Source / documentation | Key fields | Integration method | Limitations / MVP priority |
-| --- | --- | --- | --- | --- |
-| MA boundary, municipalities, land cover | [MassGIS](https://www.mass.gov/orgs/massgis-bureau-of-geographic-information) | geometry, town, land-cover class | download GIS / ArcGIS REST where published | High; land-cover year may be older |
-| Parcel boundaries and assessor data | [MassGIS standardized assessor parcels](https://www.mass.gov/info-details/massgis-data-property-tax-parcels) or county/municipal assessors | parcel ID, polygon, lot area, land use, assessed value | GIS files / service | High for selected towns; not live availability |
-| Commercial parcel data | [Regrid API](https://regrid.com/api) | parcel geometry, acreage, land use and available attributes | licensed REST API | Optional; credentials, pricing and field coverage vary |
-| Active listings | [Crexi](https://www.crexi.com/), [LoopNet](https://www.loopnet.com/), [LandWatch](https://www.landwatch.com/) | asking price, acres, listing URL/status | authorized feed or manually curated URLs | Optional; public search sites are not general-purpose open listing APIs |
-| Electricity prices, generation mix | [EIA API](https://www.eia.gov/opendata/) | industrial retail price, electricity generation, fuel mix | REST API / CSV | High; state/utility averages are not negotiated hyperscale tariffs |
-| Power plants and generation technology | [EIA-860](https://www.eia.gov/electricity/data/eia860/) | plant coordinates, capacity, fuel, status | annual CSV | Medium; nearby clean generation does not imply contracted access |
-| Grid emissions | [EPA eGRID](https://www.epa.gov/egrid) | regional CO2e emission rate | spreadsheet/CSV spatial join | High; average emissions are not marginal emissions |
-| Transmission network | [OpenStreetMap/Overpass](https://overpass-api.de/) and [HIFLD archive](https://www.datalumos.org/datalumos/project/240591/version/V1/view) | line geometry, tagged voltage | OSM query / GIS | High; mapping incomplete; distance is NOT grid capacity |
-| Climate normals | [NOAA NCEI](https://www.ncei.noaa.gov/) | temperature, precipitation, humidity, degree days | API or downloadable data | High; use nearest station or gridded data with coverage flags |
-| Water stress | [WRI Aqueduct](https://www.wri.org/aqueduct) | baseline water stress | GIS download/spatial join | Medium; not a permit or utility service capacity determination |
-| Water supply / stressed basins | [MassDEP / MassGIS](https://www.mass.gov/orgs/massachusetts-department-of-environmental-protection) | basin status, drinking-water zones | GIS download/service | High for exclusions; coverage varies |
-| Flood hazards | [FEMA NFHL](https://hazards.fema.gov/nfhl/) | flood zone, annual-chance hazard | GIS service/spatial join | High; confirm mapped coverage and effective dates |
-| Wetlands and protected land | [MassGIS](https://www.mass.gov/orgs/massgis-bureau-of-geographic-information) | protected status, wetlands | GIS layer | High; screening, not legal boundary adjudication |
-| Environmental justice | [MassGIS EJ populations](https://www.mass.gov/info-details/massgis-data-2020-us-census-environmental-justice-populations) | EJ block groups, population | GIS layer | High; do not treat population characteristics as property-value proxies |
-| Population and labor | [US Census API](https://www.census.gov/data/developers/data-sets.html), [BLS](https://www.bls.gov/developers/) | residents, workforce, wage statistics | REST/CSV | Medium; align geographies and years |
-| Road access and fiber proxy | [OpenStreetMap](https://www.openstreetmap.org/) | roads, mapped telecom infrastructure | Overpass/OSM extract | Medium; highways are NOT a valid direct fiber-distance measure |
-| Wildfire / seismic risk | [USFS](https://wildfirerisk.org/), [USGS](https://earthquake.usgs.gov/hazards/) | hazard indices | raster/GIS | Optional in MA MVP |
-| Solar potential | [NREL](https://developer.nrel.gov/) | solar resource | API/download | Optional; resource potential is not deliverable clean power |
-| Local zoning and permits | Town planning / GIS portals | zoning district, special permit rules | municipal GIS, manual review | Optional; fragmented and requires human confirmation |
+| Domain                                  | Source / documentation                                                                                                                     | Key fields                                                  | Integration method                         | Limitations / MVP priority                                              |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- | ------------------------------------------ | ----------------------------------------------------------------------- |
+| MA boundary, municipalities, land cover | [MassGIS](https://www.mass.gov/orgs/massgis-bureau-of-geographic-information)                                                              | geometry, town, land-cover class                            | download GIS / ArcGIS REST where published | High; land-cover year may be older                                      |
+| Parcel boundaries and assessor data     | [MassGIS standardized assessor parcels](https://www.mass.gov/info-details/massgis-data-property-tax-parcels) or county/municipal assessors | parcel ID, polygon, lot area, land use, assessed value      | GIS files / service                        | High for selected towns; not live availability                          |
+| Commercial parcel data                  | [Regrid API](https://regrid.com/api)                                                                                                       | parcel geometry, acreage, land use and available attributes | licensed REST API                          | Optional; credentials, pricing and field coverage vary                  |
+| Active listings                         | [Crexi](https://www.crexi.com/), [LoopNet](https://www.loopnet.com/), [LandWatch](https://www.landwatch.com/)                              | asking price, acres, listing URL/status                     | authorized feed or manually curated URLs   | Optional; public search sites are not general-purpose open listing APIs |
+| Electricity prices, generation mix      | [EIA API](https://www.eia.gov/opendata/)                                                                                                   | industrial retail price, electricity generation, fuel mix   | REST API / CSV                             | High; state/utility averages are not negotiated hyperscale tariffs      |
+| Power plants and generation technology  | [EIA-860](https://www.eia.gov/electricity/data/eia860/)                                                                                    | plant coordinates, capacity, fuel, status                   | annual CSV                                 | Medium; nearby clean generation does not imply contracted access        |
+| Grid emissions                          | [EPA eGRID](https://www.epa.gov/egrid)                                                                                                     | regional CO2e emission rate                                 | spreadsheet/CSV spatial join               | High; average emissions are not marginal emissions                      |
+| Transmission network                    | [OpenStreetMap/Overpass](https://overpass-api.de/) and [HIFLD archive](https://www.datalumos.org/datalumos/project/240591/version/V1/view) | line geometry, tagged voltage                               | OSM query / GIS                            | High; mapping incomplete; distance is NOT grid capacity                 |
+| Climate normals                         | [NOAA NCEI](https://www.ncei.noaa.gov/)                                                                                                    | temperature, precipitation, humidity, degree days           | API or downloadable data                   | High; use nearest station or gridded data with coverage flags           |
+| Water stress                            | [WRI Aqueduct](https://www.wri.org/aqueduct)                                                                                               | baseline water stress                                       | GIS download/spatial join                  | Medium; not a permit or utility service capacity determination          |
+| Water supply / stressed basins          | [MassDEP / MassGIS](https://www.mass.gov/orgs/massachusetts-department-of-environmental-protection)                                        | basin status, drinking-water zones                          | GIS download/service                       | High for exclusions; coverage varies                                    |
+| Flood hazards                           | [FEMA NFHL](https://hazards.fema.gov/nfhl/)                                                                                                | flood zone, annual-chance hazard                            | GIS service/spatial join                   | High; confirm mapped coverage and effective dates                       |
+| Wetlands and protected land             | [MassGIS](https://www.mass.gov/orgs/massgis-bureau-of-geographic-information)                                                              | protected status, wetlands                                  | GIS layer                                  | High; screening, not legal boundary adjudication                        |
+| Environmental justice                   | [MassGIS EJ populations](https://www.mass.gov/info-details/massgis-data-2020-us-census-environmental-justice-populations)                  | EJ block groups, population                                 | GIS layer                                  | High; do not treat population characteristics as property-value proxies |
+| Population and labor                    | [US Census API](https://www.census.gov/data/developers/data-sets.html), [BLS](https://www.bls.gov/developers/)                             | residents, workforce, wage statistics                       | REST/CSV                                   | Medium; align geographies and years                                     |
+| Road access and fiber proxy             | [OpenStreetMap](https://www.openstreetmap.org/)                                                                                            | roads, mapped telecom infrastructure                        | Overpass/OSM extract                       | Medium; highways are NOT a valid direct fiber-distance measure          |
+| Wildfire / seismic risk                 | [USFS](https://wildfirerisk.org/), [USGS](https://earthquake.usgs.gov/hazards/)                                                            | hazard indices                                              | raster/GIS                                 | Optional in MA MVP                                                      |
+| Solar potential                         | [NREL](https://developer.nrel.gov/)                                                                                                        | solar resource                                              | API/download                               | Optional; resource potential is not deliverable clean power             |
+| Local zoning and permits                | Town planning / GIS portals                                                                                                                | zoning district, special permit rules                       | municipal GIS, manual review               | Optional; fragmented and requires human confirmation                    |
 
 **Acquisition rule:** store URL, publisher, dataset vintage, fetch date, license/access status, geographic resolution, and missingness for every data field. Never ship paid API credentials to the browser. Cache and precompute GIS layers to keep map interaction fast.
 
@@ -505,7 +512,7 @@ atlas/
 ```json
 {
   "type": "Feature",
-  "geometry": {"type": "Polygon", "coordinates": []},
+  "geometry": { "type": "Polygon", "coordinates": [] },
   "properties": {
     "parcel_id": "EXAMPLE-ONLY",
     "town": "EXAMPLE",
@@ -531,19 +538,19 @@ Valid `for_sale` values: `verified_active`, `verified_inactive`, `unknown`. An a
 
 ### 16.4 Additional scoring inputs (retain existing eight factors for MVP)
 
-| Dimension | Proposed field | Unit | Data availability | How used |
-| --- | --- | --- | --- | --- |
-| Land | `acreage` | acres | parcel data | configurable minimum area, e.g. 100 acres as exploratory filter for 100 MW |
-| Land | `price_per_acre` | USD/acre | verified sale listing only | acquisition cost comparison |
-| Land | `zoning_verified` | boolean | municipal verification | unresolved constraint if false |
-| Grid | `electricity_price_kwh` | USD/kWh | EIA | estimated annual electricity bill |
-| Grid | `grid_carbon_kg_mwh` | kg CO2e/MWh | eGRID | estimated location-based emissions |
-| Grid | `interconnection_status` | enum | developer/utility evidence | unknown, under-study, confirmed, rejected |
-| Climate | `cooling_degree_days` | degree-days | NOAA | cooling demand proxy |
-| Water | `water_stress_index` | normalized | WRI | water impact / risk |
-| Risk | `flood_zone` | code | FEMA | site screening |
-| People | `pop_1km` | persons | Census/MassGIS | community context, not a measure of consent |
-| Evidence | `confidence` | 0–1 | source metadata | coverage and reliability badge, not site desirability |
+| Dimension | Proposed field           | Unit        | Data availability          | How used                                                                   |
+| --------- | ------------------------ | ----------- | -------------------------- | -------------------------------------------------------------------------- |
+| Land      | `acreage`                | acres       | parcel data                | configurable minimum area, e.g. 100 acres as exploratory filter for 100 MW |
+| Land      | `price_per_acre`         | USD/acre    | verified sale listing only | acquisition cost comparison                                                |
+| Land      | `zoning_verified`        | boolean     | municipal verification     | unresolved constraint if false                                             |
+| Grid      | `electricity_price_kwh`  | USD/kWh     | EIA                        | estimated annual electricity bill                                          |
+| Grid      | `grid_carbon_kg_mwh`     | kg CO2e/MWh | eGRID                      | estimated location-based emissions                                         |
+| Grid      | `interconnection_status` | enum        | developer/utility evidence | unknown, under-study, confirmed, rejected                                  |
+| Climate   | `cooling_degree_days`    | degree-days | NOAA                       | cooling demand proxy                                                       |
+| Water     | `water_stress_index`     | normalized  | WRI                        | water impact / risk                                                        |
+| Risk      | `flood_zone`             | code        | FEMA                       | site screening                                                             |
+| People    | `pop_1km`                | persons     | Census/MassGIS             | community context, not a measure of consent                                |
+| Evidence  | `confidence`             | 0–1         | source metadata            | coverage and reliability badge, not site desirability                      |
 
 **Hard feasibility vs scoring:** verified zoning conflicts, legal exclusions, inadequate acreage and documented interconnection impossibility should not be hidden by a high weighted score. Unverified grid capacity is `unknown`, not `feasible` or `fatal`.
 

@@ -122,7 +122,7 @@ const EN: Strings = {
   bands: {
     strong: "Strong site",
     workable: "Workable with conditions",
-    contested: "Contested: expect a fight",
+    contested: "Contested site",
     avoid: "Do not build here",
     fatal: "Fatal flaw",
   },
@@ -211,7 +211,7 @@ const ES: Strings = {
   bands: {
     strong: "Emplazamiento sólido",
     workable: "Viable con condiciones",
-    contested: "Disputado: habrá oposición",
+    contested: "Emplazamiento controvertido",
     avoid: "No construir aquí",
     fatal: "Defecto fatal",
   },
@@ -300,7 +300,7 @@ const PT: Strings = {
   bands: {
     strong: "Local forte",
     workable: "Viável com condições",
-    contested: "Contestado: espere oposição",
+    contested: "Local contestado",
     avoid: "Não construir aqui",
     fatal: "Falha fatal",
   },
@@ -388,7 +388,7 @@ const HT: Strings = {
   bands: {
     strong: "Bon kote",
     workable: "Posib ak kondisyon",
-    contested: "Konteste: atann yon batay",
+    contested: "Kote konteste",
     avoid: "Pa konstwi isit la",
     fatal: "Pwoblèm fatal",
   },
@@ -477,7 +477,7 @@ const VI: Strings = {
   bands: {
     strong: "Vị trí tốt",
     workable: "Khả thi có điều kiện",
-    contested: "Gây tranh cãi: sẽ có phản đối",
+    contested: "Vị trí gây tranh cãi",
     avoid: "Không nên xây ở đây",
     fatal: "Lỗi nghiêm trọng",
   },
@@ -562,7 +562,7 @@ const ZH: Strings = {
   bands: {
     strong: "优良选址",
     workable: "有条件可行",
-    contested: "存在争议：预计会有反对",
+    contested: "存在争议的选址",
     avoid: "不宜在此建设",
     fatal: "致命缺陷",
   },
@@ -651,7 +651,7 @@ const SQ: Strings = {
   bands: {
     strong: "Vendndodhje e fortë",
     workable: "E realizueshme me kushte",
-    contested: "E kontestuar: pritet kundërshtim",
+    contested: "Vendndodhje e kontestuar",
     avoid: "Të mos ndërtohet këtu",
     fatal: "Defekt fatal",
   },

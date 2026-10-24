@@ -50,12 +50,16 @@ export function MapStatusBar({
       aria-label="Map status"
       className="flex h-6 shrink-0 items-stretch border-t border-line bg-panel text-[10.5px] text-subtle"
     >
-      <Cell className={mode === "3d-offline" ? "text-warn" : "text-muted"}>{VIEW_LABEL[mode]}</Cell>
-      <Cell className="num w-[176px]">{cursor ? fmtCoord(cursor.lat, cursor.lng) : "Cursor off map"}</Cell>
+      <Cell className={mode === "3d-offline" ? "text-warn" : "text-muted"}>
+        {VIEW_LABEL[mode]}
+      </Cell>
+      <Cell className="num w-[176px]">
+        {cursor ? fmtCoord(cursor.lat, cursor.lng) : "Cursor off map"}
+      </Cell>
       <Cell className="num min-w-0 flex-1">
         {hoverHex && r ? (
           <span className="truncate">
-            cell {hoverHex.h3}
+            Screening cell
             <span className="ml-2" style={{ color: r.band.color }}>
               {r.excluded ? "0.0 / 10 fatal flaw" : `${fmtScore(r.score)} / 10`}
             </span>
@@ -66,7 +70,8 @@ export function MapStatusBar({
         )}
       </Cell>
       <Cell className="num">
-        z {zoom.toFixed(1)} · pitch {Math.round(pitch)}° · bearing {Math.round(((bearing % 360) + 360) % 360)}°
+        z {zoom.toFixed(1)} · pitch {Math.round(pitch)}° · bearing{" "}
+        {Math.round(((bearing % 360) + 360) % 360)}°
       </Cell>
       <div className="hidden shrink-0 items-center gap-2 px-2 2xl:flex">
         <span className="flex items-center gap-1">
@@ -83,8 +88,18 @@ export function MapStatusBar({
   );
 }
 
-function Cell({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Cell({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <div className={`flex shrink-0 items-center border-r border-line px-2 ${className}`}>{children}</div>
+    <div
+      className={`flex shrink-0 items-center border-r border-line px-2 ${className}`}
+    >
+      {children}
+    </div>
   );
 }

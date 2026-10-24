@@ -21,12 +21,6 @@ const OVERLAYS: {
   note: string;
 }[] = [
   {
-    key: "streets",
-    label: "Streets",
-    swatch: "#8193A3",
-    note: "Live MassGIS Base Streets vector tiles, shown for map context only. Local streets appear as you zoom in. This layer requires a network connection and does not affect the score. In the 3D view, OpenStreetMap streets replace it.",
-  },
-  {
     key: "ej",
     label: "EJ block groups",
     swatch: "#E6B765",
@@ -61,16 +55,13 @@ type MapView = "2d" | "3d";
 export function MapLegend({
   basemapFailed,
   streetsFailed,
-  streets3dActive,
   overlayState,
 }: {
   basemapFailed: boolean;
   streetsFailed: boolean;
-  /** The 3D view's OpenStreetMap streets are showing, so the MassGIS overlay steps aside. */
-  streets3dActive: boolean;
   overlayState: OverlayStateMap;
 }) {
-  const { layers, setLayer, meta } = useAtlas();
+  const { layers, setLayer } = useAtlas();
   // Closed by default: the map is the instrument, the layer list is a tool.
   const [open, setOpen] = React.useState(false);
   const [legendOpen, setLegendOpen] = React.useState(true);
@@ -82,14 +73,14 @@ export function MapLegend({
         <div className="absolute left-3 top-[72px] z-10 flex max-w-[320px] flex-col gap-1.5">
           {basemapFailed && (
             <Notice>
-              Part of the basemap geometry did not load. Scores are unaffected — they come
-              from the grid file, not the basemap.
+              Part of the basemap geometry did not load. Scores are unaffected —
+              they come from the grid file, not the basemap.
             </Notice>
           )}
           {streetsFailed && (
             <Notice>
-              Street and building tiles could not load, so the 3D view is using the offline
-              basemap. Scores are unaffected.
+              Street and building tiles could not load, so the 3D view is using
+              the offline basemap. Scores are unaffected.
             </Notice>
           )}
         </div>
@@ -111,23 +102,6 @@ export function MapLegend({
               className={`shrink-0 text-subtle transition-transform duration-150 ${legendOpen ? "" : "-rotate-90"}`}
             />
           </button>
-          <InfoDot
-            side="top"
-            content={
-              <>
-                Colour and label both encode the band, so colour is never the only
-                signal. Scores are a planning aid, not a permitting decision.
-                {meta && (
-                  <>
-                    {" "}
-                    The grid has {meta.hex_count.toLocaleString()} cells at H3 resolution{" "}
-                    {meta.h3_resolution}; {meta.excluded_count.toLocaleString()} are excluded
-                    by a hard screen.
-                  </>
-                )}
-              </>
-            }
-          />
         </div>
         {legendOpen && (
           <ul className="space-y-1 px-2.5 pb-2">
@@ -139,7 +113,11 @@ export function MapLegend({
                 label={b.label}
               />
             ))}
-            <LegendRow color={FATAL_BAND.color} range="0" label={FATAL_BAND.label} />
+            <LegendRow
+              color={FATAL_BAND.color}
+              range="0"
+              label={FATAL_BAND.label}
+            />
           </ul>
         )}
       </div>
@@ -153,7 +131,11 @@ export function MapLegend({
             onChange={(v) => setLayer("mode3d", v === "3d")}
             className="bg-panel/95"
             options={[
-              { value: "2d", label: "2D", hint: "Flat screening map, works offline" },
+              {
+                value: "2d",
+                label: "2D",
+                hint: "Flat screening map, works offline",
+              },
               {
                 value: "3d",
                 label: "3D",
@@ -174,7 +156,11 @@ export function MapLegend({
           >
             <Layers size={13} aria-hidden />
             Layers
-            {activeOverlays > 0 && <span className="num text-[11px] text-accent">{activeOverlays}</span>}
+            {activeOverlays > 0 && (
+              <span className="num text-[11px] text-accent">
+                {activeOverlays}
+              </span>
+            )}
             <ChevronDown
               size={12}
               aria-hidden
@@ -198,22 +184,12 @@ export function MapLegend({
               checked={layers.extrude}
               onChange={(v) => setLayer("extrude", v)}
             />
-            <div className="flex min-h-[32px] items-center gap-2 px-1.5 py-1">
-              <span
-                aria-hidden
-                className="h-2.5 w-2.5 shrink-0 rounded-[2px] border border-[#539ebe] bg-[#12374b]"
-              />
-              <span className="min-w-0 flex-1 text-[12px] text-fg">Open water</span>
-              <span className="eyebrow shrink-0">Mapped</span>
-            </div>
             <div className="my-1 h-px bg-line" />
             {OVERLAYS.map((o) => {
               const st = o.state ? overlayState[o.state] : undefined;
               const on = layers[o.key];
-              const stepsAside = o.key === "streets" && streets3dActive;
-              const detail = stepsAside
-                ? "Off in 3D"
-                : on && st?.loading
+              const detail =
+                on && st?.loading
                   ? "loading"
                   : on && st?.error
                     ? "failed"
@@ -227,18 +203,27 @@ export function MapLegend({
                       checked={on}
                       onChange={(v) => setLayer(o.key, v)}
                       detail={detail}
-                      disabled={stepsAside}
                     />
                   </div>
-                  <InfoDot side="left" content={o.note} label={`About ${o.label}`} />
+                  <InfoDot
+                    side="left"
+                    content={o.note}
+                    label={`About ${o.label}`}
+                  />
                 </div>
               );
             })}
-            {OVERLAYS.some((o) => o.state && layers[o.key] && overlayState[o.state!].error) && (
+            {OVERLAYS.some(
+              (o) => o.state && layers[o.key] && overlayState[o.state!].error,
+            ) && (
               <p className="mt-1 flex items-start gap-1.5 px-1.5 pb-1 text-[10px] leading-snug text-warn">
-                <AlertTriangle size={11} className="mt-px shrink-0" aria-hidden />
-                An overlay failed to load. Scores are unaffected — they come from the
-                grid file, not the overlays.
+                <AlertTriangle
+                  size={11}
+                  className="mt-px shrink-0"
+                  aria-hidden
+                />
+                An overlay failed to load. Scores are unaffected — they come
+                from the grid file, not the overlays.
               </p>
             )}
           </div>
@@ -248,11 +233,25 @@ export function MapLegend({
   );
 }
 
-function LegendRow({ color, range, label }: { color: string; range: string; label: string }) {
+function LegendRow({
+  color,
+  range,
+  label,
+}: {
+  color: string;
+  range: string;
+  label: string;
+}) {
   return (
     <li className="flex items-center gap-1.5 text-[11px]">
-      <span aria-hidden className="h-2.5 w-4 shrink-0 rounded-[2px]" style={{ background: color }} />
-      <span className="num w-[48px] shrink-0 whitespace-nowrap text-[10.5px] text-subtle">{range}</span>
+      <span
+        aria-hidden
+        className="h-2.5 w-4 shrink-0 rounded-[2px]"
+        style={{ background: color }}
+      />
+      <span className="num w-[48px] shrink-0 whitespace-nowrap text-[10.5px] text-subtle">
+        {range}
+      </span>
       <span className="whitespace-nowrap text-muted">{label}</span>
     </li>
   );

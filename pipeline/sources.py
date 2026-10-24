@@ -45,20 +45,6 @@ SOURCES = {
         "role": "basemap",
         "caveat": "Used only to draw the basemap, not in any score.",
     },
-    "massgis_base_streets": {
-        "name": "MassGIS Base Streets",
-        "publisher": "MassGIS",
-        "url": "https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/MassGIS_Roads/VectorTileServer",
-        "landing_page": "https://www.mass.gov/info-details/massgis-data-base-streets",
-        "vintage": "MassGIS current, loaded as live vector tiles",
-        "license": "MassGIS open data",
-        "status": "verified",
-        "role": "basemap",
-        "caveat": (
-            "Optional display layer only; it requires a network connection and is not "
-            "used in any score or distance measurement."
-        ),
-    },
     "massgis_towns": {
         "name": "MassGIS Census 2020 Towns",
         "publisher": "MassGIS (Bureau of Geographic Information)",

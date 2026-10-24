@@ -3,8 +3,6 @@
 import * as React from "react";
 import * as Tabs from "@radix-ui/react-tabs";
 import {
-  AlertTriangle,
-  ChevronDown,
   Ban,
   Copy,
   Crosshair,
@@ -17,38 +15,53 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAtlas } from "./atlas-provider";
-import { Button, EmptyState, Kbd, KeyCombo, Separator, StatusTag } from "./ui/primitives";
+import {
+  Button,
+  EmptyState,
+  Kbd,
+  KeyCombo,
+  Separator,
+  StatusTag,
+} from "./ui/primitives";
 import { InfoDot, Hint } from "./ui/info";
 import { ScoreBreakdown } from "./score-breakdown";
 import { CostEstimate } from "./cost-estimate";
 import { findAlternatives } from "@/lib/alternatives";
 import { eo658Checklist } from "@/lib/eo658";
-import { fmtKm, fmtInt, fmtLatLng, fmtScore, fmtUsd, titleCase } from "@/lib/format";
+import {
+  fmtKm,
+  fmtInt,
+  fmtLatLng,
+  fmtScore,
+  fmtUsd,
+  titleCase,
+} from "@/lib/format";
 import { COOLING_LABEL, LENS_LABEL, presetFor } from "@/lib/weights";
 import { estimate } from "@/lib/economics";
 import type { HexRecord, ScoreResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const EXAMPLES: { label: string; detail: string; lat: number; lng: number }[] = [
-  {
-    label: "Holyoke, near MGHPCC",
-    detail: "On the grid and next to river hydro, inside an EJ block group",
-    lat: 42.2025,
-    lng: -72.6079,
-  },
-  {
-    label: "Chelsea, residential",
-    detail: "Dense housing, EJ block group, no developable land class",
-    lat: 42.3918,
-    lng: -71.0328,
-  },
-  {
-    label: "Quabbin Reservoir",
-    detail: "A fatal flaw: open water in a drinking water supply watershed",
-    lat: 42.38,
-    lng: -72.29,
-  },
-];
+const EXAMPLES: { label: string; detail: string; lat: number; lng: number }[] =
+  [
+    {
+      label: "Holyoke, near MGHPCC",
+      detail: "On the grid and next to river hydro, inside an EJ block group",
+      lat: 42.2025,
+      lng: -72.6079,
+    },
+    {
+      label: "Chelsea, residential",
+      detail: "Dense housing, EJ block group, no developable land class",
+      lat: 42.3918,
+      lng: -71.0328,
+    },
+    {
+      label: "Quabbin Reservoir",
+      detail: "A fatal flaw: open water in a drinking water supply watershed",
+      lat: 42.38,
+      lng: -72.29,
+    },
+  ];
 
 export function SiteInspector({
   onOpenBrief,
@@ -75,7 +88,14 @@ export function SiteInspector({
   } = useAtlas();
 
   const [alternatives, setAlternatives] = React.useState<
-    { h3: string; town: string | null; score: number; distanceKm: number; reason: string }[] | null
+    | {
+        h3: string;
+        town: string | null;
+        score: number;
+        distanceKm: number;
+        reason: string;
+      }[]
+    | null
   >(null);
   const [searching, setSearching] = React.useState(false);
 
@@ -88,7 +108,13 @@ export function SiteInspector({
     setSearching(true);
     // Deferred so the button's pressed state paints before the scan runs.
     requestAnimationFrame(() => {
-      const found = findAlternatives(index, selected, { mw, cooling, lens, radiusKm: 25, k: 3 });
+      const found = findAlternatives(index, selected, {
+        mw,
+        cooling,
+        lens,
+        radiusKm: 25,
+        k: 3,
+      });
       setAlternatives(
         found.map((a) => ({
           h3: a.hex.h3,
@@ -128,13 +154,11 @@ export function SiteInspector({
       <Aside>
         <EmptyState title="Pick a location">
           <p>
-            Click anywhere in Massachusetts to screen a {mw} MW {COOLING_LABEL[cooling].toLowerCase()}{" "}
-            data centre at that spot. Atlas snaps the click to a{" "}
-            {meta ? meta.hex_area_km2.toFixed(2) : "0.74"} km² screening cell and shows the
-            evidence behind the score.
-          </p>
-          <p className="text-subtle">
-            A cell is a geographic screening unit, not a parcel and not land for sale.
+            Click anywhere in Massachusetts to screen a {mw} MW{" "}
+            {COOLING_LABEL[cooling].toLowerCase()} data centre at that spot.
+            Atlas snaps the click to a{" "}
+            {meta ? meta.hex_area_km2.toFixed(2) : "0.74"} km² screening cell
+            and shows the evidence behind the score.
           </p>
           <Separator className="my-3" />
           <p className="eyebrow">Start from a known site</p>
@@ -172,7 +196,6 @@ export function SiteInspector({
   const eo = eo658Checklist(mw);
   const isPinned = pinned.includes(selected.h3);
   const cost = scenario ? estimate(scenario) : null;
-  const critical = r.unresolved.filter((u) => u.severity === "critical");
 
   return (
     <Aside>
@@ -211,7 +234,12 @@ export function SiteInspector({
         <ToolButton
           label="Copy coords"
           hint="Copy the cell centre as latitude, longitude"
-          onClick={() => copy(`${selected.lat.toFixed(5)}, ${selected.lng.toFixed(5)}`, "Coordinates copied")}
+          onClick={() =>
+            copy(
+              `${selected.lat.toFixed(5)}, ${selected.lng.toFixed(5)}`,
+              "Coordinates copied",
+            )
+          }
         >
           <MapPin size={12} aria-hidden />
         </ToolButton>
@@ -234,7 +262,7 @@ export function SiteInspector({
             {titleCase(selected.town)}
           </h2>
           <p className="num mt-0.5 text-[10.5px] text-subtle">
-            {fmtLatLng(selected.lat, selected.lng)} · cell {selected.h3}
+            {fmtLatLng(selected.lat, selected.lng)}
           </p>
         </div>
         <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted">
@@ -247,8 +275,9 @@ export function SiteInspector({
           <Hint
             content={
               <>
-                Atlas holds no ownership or listing record for this cell. Nothing here
-                indicates that land is available, and a vacant cell is not a site for sale.
+                Atlas holds no ownership or listing record for this cell.
+                Nothing here indicates that land is available, and a vacant cell
+                is not a site for sale.
               </>
             }
           >
@@ -256,16 +285,6 @@ export function SiteInspector({
               Availability unknown
             </span>
           </Hint>
-          {meta && (
-            <>
-              <span aria-hidden className="text-subtle">
-                ·
-              </span>
-              <span className="text-subtle">
-                data built {new Date(meta.generated_at).toISOString().slice(0, 10)}
-              </span>
-            </>
-          )}
         </p>
       </div>
 
@@ -275,20 +294,27 @@ export function SiteInspector({
           <div className="rounded-[8px] border border-unknown/50 bg-raised/60 p-3">
             <div className="flex items-center gap-2">
               <Ban size={16} className="shrink-0 text-unknown" aria-hidden />
-              <span className="text-[14px] font-semibold text-fg">Fatal flaw</span>
-              <span className="num ml-auto text-[26px] font-semibold text-unknown">0.0</span>
+              <span className="text-[14px] font-semibold text-fg">
+                Fatal flaw
+              </span>
+              <span className="num ml-auto text-[26px] font-semibold text-unknown">
+                0.0
+              </span>
             </div>
             <ul className="mt-2 space-y-1">
               {r.exclusionReasons.map((reason) => (
-                <li key={reason} className="text-[11.5px] leading-snug text-muted">
+                <li
+                  key={reason}
+                  className="text-[11.5px] leading-snug text-muted"
+                >
                   {reason}
                 </li>
               ))}
             </ul>
             <p className="mt-2 border-t border-line pt-1.5 text-[10.5px] leading-snug text-subtle">
-              A hard screen returns zero before any bonus is applied. This is a preliminary
-              geospatial screen from published polygons, not a legal determination for a
-              specific parcel.
+              A hard screen returns zero before any bonus is applied. This is a
+              preliminary geospatial screen from published polygons, not a legal
+              determination for a specific parcel.
             </p>
           </div>
         ) : (
@@ -302,7 +328,10 @@ export function SiteInspector({
               </span>
               <span className="num pb-1 text-[14px] text-subtle">/ 10</span>
               <div className="ml-auto pb-1 text-right">
-                <div className="text-[12px] font-medium" style={{ color: r.band.color }}>
+                <div
+                  className="text-[12px] font-medium"
+                  style={{ color: r.band.color }}
+                >
                   {r.band.label}
                 </div>
                 <div className="eyebrow">Screening estimate</div>
@@ -310,22 +339,17 @@ export function SiteInspector({
             </div>
 
             <div className="mt-2.5 space-y-1.5">
-              <LensRow
-                label="Buildability"
-                value={r.buildability}
-                coverage={r.coverage.buildabilityWeight}
-              />
-              <LensRow
-                label="Community"
-                value={r.community}
-                coverage={r.coverage.communityWeight}
-              />
+              <LensRow label="Buildability" value={r.buildability} />
+              <LensRow label="Community" value={r.community} />
             </div>
 
             {r.bonuses.length > 0 && (
               <ul className="mt-2 space-y-0.5">
                 {r.bonuses.map((b) => (
-                  <li key={b.key} className="flex items-baseline gap-1.5 text-[11px] text-ok">
+                  <li
+                    key={b.key}
+                    className="flex items-baseline gap-1.5 text-[11px] text-ok"
+                  >
                     <span className="num shrink-0">+{b.amount.toFixed(1)}</span>
                     <span className="min-w-0 text-muted">{b.label}</span>
                   </li>
@@ -337,37 +361,8 @@ export function SiteInspector({
                 )}
               </ul>
             )}
-
-            {r.divergence && (
-              <div className="mt-2 rounded-[6px] border border-warn/35 bg-warn/5 px-2.5 py-2">
-                <p className="text-[11.5px] leading-snug text-fg">
-                  The two lenses disagree by{" "}
-                  <span className="num">{r.divergence.gap.toFixed(1)}</span> points.
-                  {r.divergence.weakest && (
-                    <>
-                      {" "}
-                      The weakest factor is{" "}
-                      <span className="font-medium">
-                        {r.divergence.weakest.label.toLowerCase()}
-                      </span>
-                      : {r.divergence.weakest.raw}.
-                    </>
-                  )}
-                </p>
-                <p className="mt-1 text-[10.5px] text-subtle">
-                  Current lens: {LENS_LABEL[lens]} (α = {r.alpha.toFixed(2)}). A low score is a
-                  model label, not a prediction of how anyone will vote.
-                </p>
-              </div>
-            )}
           </div>
         )}
-      </div>
-
-      {/* 3. Critical warnings — never hidden behind a good score. The titles
-          always show; only the longer explanations sit behind a disclosure. */}
-      <div className="px-4 pt-3">
-        <Unresolved items={critical} />
       </div>
 
       {/* 4. Three high-signal metrics */}
@@ -400,7 +395,13 @@ export function SiteInspector({
                   : "Outside mapped zones"
           }
           note="FEMA NFHL"
-          tone={selected.flood_100yr ? "bad" : selected.flood_500yr ? "warn" : undefined}
+          tone={
+            selected.flood_100yr
+              ? "bad"
+              : selected.flood_500yr
+                ? "warn"
+                : undefined
+          }
         />
       </dl>
 
@@ -418,15 +419,18 @@ export function SiteInspector({
 
         <Tabs.Content value="factors" className="px-4 pt-3 outline-none">
           <div className="mb-2 flex items-center justify-between">
-            <h3 className="text-[13px] font-semibold text-fg">Why this score</h3>
+            <h3 className="text-[13px] font-semibold text-fg">
+              Why this score
+            </h3>
             <InfoDot
               side="left"
               content={
                 <>
-                  Each factor is normalised to 0–1 where 1 is most favourable, then weighted
-                  inside its lens. A factor with no data is dropped from both the numerator
-                  and the denominator, so missing data cannot read as a bad site or a good
-                  one. Expand a row for the measurement and its source.
+                  Each factor is normalised to 0–1 where 1 is most favourable,
+                  then weighted inside its lens. A factor with no data is
+                  dropped from both the numerator and the denominator, so
+                  missing data cannot read as a bad site or a good one. Expand a
+                  row for the measurement and its source.
                 </>
               }
             />
@@ -445,9 +449,12 @@ export function SiteInspector({
               {eo.items.map((item) => (
                 <li key={item.section}>
                   <p className="text-[11.5px] font-medium leading-snug text-fg">
-                    <span className="num text-subtle">{item.section}</span> — {item.title}
+                    <span className="num text-subtle">{item.section}</span> —{" "}
+                    {item.title}
                   </p>
-                  <p className="mt-0.5 text-[10.5px] leading-snug text-subtle">{item.detail}</p>
+                  <p className="mt-0.5 text-[10.5px] leading-snug text-subtle">
+                    {item.detail}
+                  </p>
                 </li>
               ))}
             </ul>
@@ -478,7 +485,11 @@ export function SiteInspector({
             Generate brief
             <Kbd className="ml-1">B</Kbd>
           </Button>
-          <Button onClick={findBetter} disabled={searching} title="Scan 25 km for better cells (F)">
+          <Button
+            onClick={findBetter}
+            disabled={searching}
+            title="Scan 25 km for better cells (F)"
+          >
             <Target size={13} aria-hidden />
             {searching ? "Scanning…" : "Find better"}
             <Kbd className="ml-1">F</Kbd>
@@ -489,8 +500,8 @@ export function SiteInspector({
           <div className="mt-2">
             {alternatives.length === 0 ? (
               <p className="text-[11px] text-subtle">
-                No non-excluded cell within 25 km scores higher at {mw} MW under the{" "}
-                {LENS_LABEL[lens]} lens.
+                No non-excluded cell within 25 km scores higher at {mw} MW under
+                the {LENS_LABEL[lens]} lens.
               </p>
             ) : (
               <ul className="space-y-1">
@@ -504,7 +515,11 @@ export function SiteInspector({
                     >
                       <span className="flex items-baseline justify-between gap-2">
                         <span className="flex min-w-0 items-center gap-1 text-[11.5px] font-medium text-fg">
-                          <Navigation size={10} aria-hidden className="shrink-0 text-accent" />
+                          <Navigation
+                            size={10}
+                            aria-hidden
+                            className="shrink-0 text-accent"
+                          />
                           <span className="truncate">{titleCase(a.town)}</span>
                           <span className="num shrink-0 text-subtle">
                             {a.distanceKm.toFixed(1)} km
@@ -524,10 +539,6 @@ export function SiteInspector({
             )}
           </div>
         )}
-
-        <p className="mt-2 text-[10px] leading-snug text-subtle">
-          Scores are a planning aid, not a permitting decision.
-        </p>
       </div>
     </Aside>
   );
@@ -546,28 +557,19 @@ function Aside({ children }: { children: React.ReactNode }) {
   );
 }
 
-function LensRow({
-  label,
-  value,
-  coverage,
-}: {
-  label: string;
-  value: number | null;
-  coverage: number;
-}) {
+function LensRow({ label, value }: { label: string; value: number | null }) {
   const pct = value === null ? 0 : (value / 10) * 100;
   return (
     <div className="flex items-center gap-2">
-      <span className="w-[76px] shrink-0 text-[11.5px] text-muted">{label}</span>
+      <span className="w-[76px] shrink-0 text-[11.5px] text-muted">
+        {label}
+      </span>
       <div className="h-[5px] min-w-0 flex-1 overflow-hidden rounded-full bg-[#1b2631]">
         <div
           className="h-full rounded-full bg-accent/80 transition-[width] duration-200"
           style={{ width: `${pct}%` }}
         />
       </div>
-      {coverage < 1 && (
-        <span className="eyebrow shrink-0 text-warn">{Math.round(coverage * 100)}%</span>
-      )}
       <span className="num w-[28px] shrink-0 text-right text-[12px] font-medium text-fg">
         {value === null ? "—" : value.toFixed(1)}
       </span>
@@ -594,7 +596,11 @@ function KeyMetric({
       </dt>
       <dd
         className={`num shrink-0 text-right text-[12.5px] font-semibold ${
-          tone === "bad" ? "text-bad" : tone === "warn" ? "text-warn" : "text-fg"
+          tone === "bad"
+            ? "text-bad"
+            : tone === "warn"
+              ? "text-warn"
+              : "text-fg"
         }`}
       >
         {value}
@@ -603,46 +609,17 @@ function KeyMetric({
   );
 }
 
-function Unresolved({ items }: { items: ScoreResult["unresolved"] }) {
-  const [open, setOpen] = React.useState(false);
-  return (
-    <div className="rounded-[6px] border border-line bg-raised/40 p-2.5">
-      <div className="flex items-center gap-1.5">
-        <AlertTriangle size={12} className="shrink-0 text-warn" aria-hidden />
-        <span className="eyebrow text-warn">
-          {items.length} unresolved before this is a real site
-        </span>
-      </div>
-      <ul className={`mt-1.5 ${open ? "space-y-1.5" : "space-y-0.5"}`}>
-        {items.map((u) => (
-          <li key={u.key}>
-            <p className="text-[11.5px] font-medium leading-snug text-fg">{u.label}</p>
-            {open && <p className="text-[10.5px] leading-snug text-subtle">{u.detail}</p>}
-          </li>
-        ))}
-      </ul>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="mt-1.5 flex items-center gap-0.5 rounded-[4px] text-[10.5px] text-subtle hover:text-fg"
-      >
-        {open ? "Hide the reasons" : "Why these are open"}
-        <ChevronDown
-          size={11}
-          aria-hidden
-          className={`transition-transform duration-150 ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-    </div>
-  );
-}
-
 function boolLabel(v: boolean | null): string {
   return v === null ? "Not available" : v ? "Yes" : "No";
 }
 
-function InspectorTab({ value, children }: { value: string; children: React.ReactNode }) {
+function InspectorTab({
+  value,
+  children,
+}: {
+  value: string;
+  children: React.ReactNode;
+}) {
   return (
     <Tabs.Trigger
       value={value}
@@ -695,7 +672,9 @@ function ToolButton({
         className={cn(
           "inline-flex h-7 items-center gap-1 rounded-[6px] px-1.5 text-[11px] font-medium transition-colors duration-100",
           "disabled:cursor-not-allowed disabled:opacity-45",
-          pressed ? "bg-accent-muted text-accent" : "text-muted hover:bg-raised hover:text-fg",
+          pressed
+            ? "bg-accent-muted text-accent"
+            : "text-muted hover:bg-raised hover:text-fg",
           className,
         )}
       >
@@ -710,7 +689,11 @@ function copy(text: string, message: string) {
   navigator.clipboard
     .writeText(text)
     .then(() => toast.success(message, { description: text }))
-    .catch(() => toast("Copy failed", { description: "The browser blocked clipboard access." }));
+    .catch(() =>
+      toast("Copy failed", {
+        description: "The browser blocked clipboard access.",
+      }),
+    );
 }
 
 /** Every raw measurement behind the score, as a two-column table. */
@@ -731,23 +714,36 @@ function MeasurementsTable({ hex }: { hex: HexRecord }) {
     ["Nearest 69 kV+ line", fmtKm(hex.d_tx69_km)],
     ["Nearest 115 kV+ line", fmtKm(hex.d_tx115_km)],
     ["Nearest 345 kV+ line", fmtKm(hex.d_tx345_km)],
-    ["Nearest non-emitting generator", `${fmtKm(hex.d_clean_km)} (proximity, not supply)`],
+    [
+      "Nearest non-emitting generator",
+      `${fmtKm(hex.d_clean_km)} (proximity, not supply)`,
+    ],
     ["Municipal light plant town", boolLabel(hex.mlp_town)],
     ["Drinking water Zone II", fmtKm(hex.d_dw_zone2_km)],
     ["Surface water supply watershed", boolLabel(hex.in_sw_supply_watershed)],
     ["Sea level rise exposure (≤3 ft)", boolLabel(hex.coastal_slr)],
-    ["Activity and Use Limitation site within 500 m", boolLabel(hex.aul_site_500m)],
+    [
+      "Activity and Use Limitation site within 500 m",
+      boolLabel(hex.aul_site_500m),
+    ],
     [
       "Developed share within 1 km",
-      hex.developed_frac_1km === null ? "Not available" : `${Math.round(hex.developed_frac_1km * 100)}%`,
+      hex.developed_frac_1km === null
+        ? "Not available"
+        : `${Math.round(hex.developed_frac_1km * 100)}%`,
     ],
-    ["Nearest major highway", `${fmtKm(hex.d_highway_km)} — road access, not fiber`],
+    [
+      "Nearest major highway",
+      `${fmtKm(hex.d_highway_km)} — road access, not fiber`,
+    ],
     ["Fiber route", "Not available in this build"],
     ["Basin water stress index", "Not available in this build"],
   ];
   return (
     <table className="w-full table-fixed border-collapse text-[11px]">
-      <caption className="sr-only">Raw measurements for this screening cell</caption>
+      <caption className="sr-only">
+        Raw measurements for this screening cell
+      </caption>
       <colgroup>
         <col />
         <col className="w-[44%]" />
@@ -767,10 +763,15 @@ function MeasurementsTable({ hex }: { hex: HexRecord }) {
           const missing = value === null || value.startsWith("Not available");
           return (
             <tr key={label} className="border-b border-line/50">
-              <th scope="row" className="py-1 pr-3 text-left align-top font-normal text-subtle">
+              <th
+                scope="row"
+                className="py-1 pr-3 text-left align-top font-normal text-subtle"
+              >
                 {label}
               </th>
-              <td className={`num py-1 text-right align-top ${missing ? "text-unknown" : "text-muted"}`}>
+              <td
+                className={`num py-1 text-right align-top ${missing ? "text-unknown" : "text-muted"}`}
+              >
                 {value ?? "Not available"}
               </td>
             </tr>

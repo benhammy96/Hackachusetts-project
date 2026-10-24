@@ -17,7 +17,6 @@ export interface LayerToggles {
   /** 3D street view: street tiles, place names and OSM buildings under a tilted camera. */
   mode3d: boolean;
   transmission: boolean;
-  streets: boolean;
   ej: boolean;
   protected: boolean;
   flood: boolean;
@@ -114,7 +113,7 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
 
   const [mw, setMw] = React.useState(100);
   const [cooling, setCooling] = React.useState<Cooling>("evaporative");
-  const [lens, setLens] = React.useState<Lens>("balanced");
+  const [lens, setLens] = React.useState<Lens>("resident");
 
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [pinned, setPinned] = React.useState<string[]>([]);
@@ -128,9 +127,6 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
     // No UI toggle any more; the transmission overlay stays off. The grid-access
     // arc to the nearest qualifying line is driven separately by the selection.
     transmission: false,
-    // Optional live MassGIS vector tiles. The local basemap remains usable
-    // when this is off or the tile service cannot be reached.
-    streets: false,
     ej: false,
     protected: false,
     flood: false,

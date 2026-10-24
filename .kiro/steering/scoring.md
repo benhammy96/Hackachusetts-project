@@ -22,27 +22,27 @@ neither does, the score is null, not zero.
 
 ## Weights
 
-| Lens | Factor | Weight | f |
-| --- | --- | --- | --- |
-| Buildability | Grid access | 35 | `clamp(1 − (d_km − 1) / 14)` at the voltage the size requires |
-| Buildability | Clean power proximity | 25 | `clamp(1 − d_clean_km / 30)`, +0.2 in a municipal light plant town, floored at 0.6 when MW ≤ 25 |
-| Buildability | Fiber and latency | 20 | `clamp(1 − d_fiber_km / 20)`, **null unless a real fiber dataset is loaded** |
-| Buildability | Land readiness | 20 | by class: industrial 1.0, commercial 0.8, other developed 0.5, open land 0.3, agriculture 0.3, forest 0.1, residential 0.0 |
-| Community | Residents nearby | 30 | `clamp(1 − pop_1km / P)`, −0.3 if a school or hospital is within 500 m |
-| Community | Environmental justice | 30 | in an EJ block group 0.0; within 1 mile 0.4; else `0.6 + 0.4 · clamp(d_ej_km / 8)` |
-| Community | Water | 20 | `1 − water_stress`, −0.3 if a drinking water Zone II is within 1 km, −`0.3 · MW/300` if evaporative. **Null when no stress index is loaded.** |
-| Community | Climate risk | 20 | min of: 0.5 in the 0.2% floodplain, 0.4 in sea level rise inundation, else 1.0 |
+| Lens         | Factor                | Weight | f                                                                                                                                             |
+| ------------ | --------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Buildability | Grid access           | 35     | `clamp(1 − (d_km − 1) / 14)` at the voltage the size requires                                                                                 |
+| Buildability | Clean power proximity | 25     | `clamp(1 − d_clean_km / 30)`, +0.2 in a municipal light plant town, floored at 0.6 when MW ≤ 25                                               |
+| Buildability | Fiber and latency     | 20     | `clamp(1 − d_fiber_km / 20)`, **null unless a real fiber dataset is loaded**                                                                  |
+| Buildability | Land readiness        | 20     | by class: industrial 1.0, commercial 0.8, other developed 0.5, open land 0.3, agriculture 0.3, forest 0.1, residential 0.0                    |
+| Community    | Residents nearby      | 30     | `clamp(1 − pop_1km / P)`, −0.3 if a school or hospital is within 500 m                                                                        |
+| Community    | Environmental justice | 30     | in an EJ block group 0.0; within 1 mile 0.4; else `0.6 + 0.4 · clamp(d_ej_km / 8)`                                                            |
+| Community    | Water                 | 20     | `1 − water_stress`, −0.3 if a drinking water Zone II is within 1 km, −`0.3 · MW/300` if evaporative. **Null when no stress index is loaded.** |
+| Community    | Climate risk          | 20     | min of: 0.5 in the 0.2% floodplain, 0.4 in sea level rise inundation, else 1.0                                                                |
 
 `P` = 8000 at 5 MW, 5000 at 25 MW, 3000 at 100 MW, 1500 at 300 MW.
 
 ### Size and voltage
 
-| Preset | MW | Required voltage | EO 658 |
-| --- | --- | --- | --- |
-| Edge | 5 | ≥ 69 kV | no |
-| Enterprise | 25 | ≥ 69 kV | no (threshold is *above* 25 MW) |
-| Campus | 100 | ≥ 115 kV | yes |
-| Hyperscale | 300 | ≥ 345 kV | yes |
+| Preset     | MW  | Required voltage | EO 658                          |
+| ---------- | --- | ---------------- | ------------------------------- |
+| Edge       | 5   | ≥ 69 kV          | no                              |
+| Enterprise | 25  | ≥ 69 kV          | no (threshold is _above_ 25 MW) |
+| Campus     | 100 | ≥ 115 kV         | yes                             |
+| Hyperscale | 300 | ≥ 345 kV         | yes                             |
 
 The voltage thresholds are an Atlas modelling assumption, not an engineering
 rule. The UI must say so.
@@ -63,13 +63,13 @@ rule. The UI must say so.
 
 ## Bands
 
-| Score | Label |
-| --- | --- |
-| 8.0–10 | Strong site |
-| 6.0–7.9 | Workable with conditions |
-| 4.0–5.9 | Contested: expect a fight |
-| 0.0–3.9 | Do not build here |
-| 0 + excluded | Fatal flaw |
+| Score        | Label                    |
+| ------------ | ------------------------ |
+| 8.0–10       | Strong site              |
+| 6.0–7.9      | Workable with conditions |
+| 4.0–5.9      | Contested site           |
+| 0.0–3.9      | Do not build here        |
+| 0 + excluded | Fatal flaw               |
 
 ## Invariants — property-tested, do not break
 

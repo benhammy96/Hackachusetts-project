@@ -35,7 +35,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const COOLINGS: Cooling[] = ["evaporative", "closed_loop", "air"];
-const LENSES: Lens[] = ["resident", "balanced", "developer"];
+const LENSES: Lens[] = ["resident", "developer"];
 const MWS = [5, 25, 100, 300];
 
 interface Body {
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
   const lens =
     typeof body.lens === "string" && LENSES.includes(body.lens as Lens)
       ? (body.lens as Lens)
-      : "balanced";
+      : "resident";
   const lang: LangCode =
     typeof body.lang === "string" && isLang(body.lang) ? body.lang : "en";
   const audience: Audience = body.audience === "developer" ? "developer" : "community";
@@ -103,13 +103,11 @@ export async function POST(req: NextRequest) {
 
   const toolPayload = {
     get_site_score: {
-      cell: hex.h3,
       town: hex.town,
       coordinates: { lat: hex.lat, lng: hex.lng },
       mw,
       cooling,
       lens,
-      alpha: result.alpha,
       excluded: result.excluded,
       exclusion_reasons: result.exclusionReasons,
       score: result.score,
@@ -121,9 +119,6 @@ export async function POST(req: NextRequest) {
         community: result.coverage.communityWeight,
       },
       bonuses: result.bonuses,
-      divergence: result.divergence
-        ? { gap: result.divergence.gap, weakest: result.divergence.weakest?.label ?? null }
-        : null,
       factors: result.factors.map((f) => ({
         factor: f.label,
         value: f.value,

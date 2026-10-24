@@ -405,10 +405,10 @@ def main() -> None:
     layer_out["towns"] = town_features
 
     water = cached(
-        "hydrography",
+        "hydrography_detail_v2",
         lambda: (
             arcgis.query_all(f"{MASSGIS_REST}/AGOL/Hydro_Major/MapServer/2",
-                             out_fields="NAME,TYPE,FEATURE", generalize_m=60)
+                             out_fields="NAME,TYPE,FEATURE", generalize_m=8)
         ),
     )
     water_features = []
@@ -419,7 +419,7 @@ def main() -> None:
         water_features.append({
             "type": "Feature",
             "properties": {"name": f["attributes"].get("NAME")},
-            "geometry": json.loads(json.dumps(g.simplify(0.0008).__geo_interface__)),
+            "geometry": json.loads(json.dumps(g.simplify(0.00008).__geo_interface__)),
         })
     layer_out["water"] = water_features
     log(f"basemap: {len(town_features)} towns, {len(water_features)} water bodies")

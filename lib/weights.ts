@@ -103,7 +103,7 @@ export const LAND_CLASS_LABEL: Record<LandClass, string> = {
 export const BANDS: Band[] = [
   { key: "strong", label: "Strong site", color: "#68C49A", min: 8.0, max: 10 },
   { key: "workable", label: "Workable with conditions", color: "#A8C977", min: 6.0, max: 7.99 },
-  { key: "contested", label: "Contested: expect a fight", color: "#E6B765", min: 4.0, max: 5.99 },
+  { key: "contested", label: "Contested site", color: "#E6B765", min: 4.0, max: 5.99 },
   { key: "avoid", label: "Do not build here", color: "#E27D77", min: 0, max: 3.99 },
 ];
 

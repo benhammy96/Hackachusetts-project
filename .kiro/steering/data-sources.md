@@ -10,11 +10,10 @@ Everything below was fetched live from the publisher. Nothing is hand-entered.
 
 ## Map context layers
 
-| Layer                        | Source                            | Status   | Caveat                                                                                  |
-| ---------------------------- | --------------------------------- | -------- | --------------------------------------------------------------------------------------- |
-| Streets                      | MassGIS Base Streets vector tiles | verified | optional live display layer; requires a network connection and is not used by the score |
-| Lakes and major water bodies | MassGIS Major Hydrography         | verified | local display layer; not used by the score                                              |
-| Town and county labels       | MassGIS Census 2020 Towns         | verified | local display layer; labels use representative points                                   |
+| Layer                        | Source                    | Status   | Caveat                                                |
+| ---------------------------- | ------------------------- | -------- | ----------------------------------------------------- |
+| Lakes and major water bodies | MassGIS Major Hydrography | verified | local display layer; not used by the score            |
+| Town and county labels       | MassGIS Census 2020 Towns | verified | local display layer; labels use representative points |
 
 ## Per-hex fields
 

@@ -5,13 +5,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { ExternalLink, X } from "lucide-react";
 import { useAtlas } from "./atlas-provider";
 import { Button, StatusTag, type Status } from "./ui/primitives";
-import {
-  fmtInt,
-  fmtNumber,
-  fmtPercent,
-  fmtUtcDateTime,
-  NOT_AVAILABLE,
-} from "@/lib/format";
+import { fmtInt, fmtNumber, fmtPercent, NOT_AVAILABLE } from "@/lib/format";
 import {
   CONDITIONAL_FIELD,
   SOURCE_ROLE_LABEL,
@@ -138,13 +132,13 @@ export function DataProvenance({
                     <span className="num">
                       {Object.keys(meta.sources).length}
                     </span>{" "}
-                    published datasets · grid built{" "}
-                    {fmtUtcDateTime(meta.generated_at)} ·{" "}
-                    <span className="num">{fmtInt(meta.hex_count)}</span> cells
-                    of{" "}
+                    published datasets ·{" "}
+                    <span className="num">{fmtInt(meta.hex_count)}</span>{" "}
+                    screening cells ·{" "}
                     <span className="num">
                       {meta.hex_area_km2.toFixed(2)} km²
-                    </span>
+                    </span>{" "}
+                    each
                   </>
                 ) : (
                   "Where every number comes from, and what is missing."

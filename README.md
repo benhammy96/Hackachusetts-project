@@ -32,14 +32,14 @@ justice. Built for the Hackachusetts 2026 Climate Tech track.
 
 ## Tech stack
 
-| Layer      | Technology                                              |
-| ---------- | ------------------------------------------------------- |
-| Framework  | Next.js 16 (App Router), React 19, TypeScript           |
-| Mapping    | MapLibre GL + deck.gl, H3 hex grid, Turf.js             |
-| Styling    | Tailwind CSS 4, Radix UI primitives                     |
-| AI briefs  | Amazon Bedrock (Claude) — optional, with offline fallback |
-| Data prep  | Python pipeline (H3 hexes from public GIS sources)      |
-| Testing    | Vitest + fast-check (property-based)                    |
+| Layer     | Technology                                                |
+| --------- | --------------------------------------------------------- |
+| Framework | Next.js 16 (App Router), React 19, TypeScript             |
+| Mapping   | MapLibre GL + deck.gl, H3 hex grid, Turf.js               |
+| Styling   | Tailwind CSS 4, Radix UI primitives                       |
+| AI briefs | Amazon Bedrock (Claude) — optional, with offline fallback |
+| Data prep | Python pipeline (H3 hexes from public GIS sources)        |
+| Testing   | Vitest + fast-check (property-based)                      |
 
 ## Quick start
 
@@ -95,13 +95,13 @@ The two lens scores are combined with a geometric mean (tunable by audience), an
 hard exclusion forces the score to 0, and small bonuses (e.g. brownfield reuse,
 closed-loop cooling) are capped at +1.0.
 
-| Score      | Label                      |
-| ---------- | -------------------------- |
-| 8.0–10     | Strong site                |
-| 6.0–7.9    | Workable with conditions   |
-| 4.0–5.9    | Contested: expect a fight  |
-| 0.1–3.9    | Do not build here          |
-| 0          | Fatal flaw                 |
+| Score   | Label                    |
+| ------- | ------------------------ |
+| 8.0–10  | Strong site              |
+| 6.0–7.9 | Workable with conditions |
+| 4.0–5.9 | Contested site           |
+| 0.1–3.9 | Do not build here        |
+| 0       | Fatal flaw               |
 
 **Design principle:** environmental justice is a protection, never an advantage —
 a burdened neighborhood always lowers the score. Full formulas, invariants, and

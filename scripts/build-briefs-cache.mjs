@@ -30,7 +30,7 @@ const SITES = [
 
 const MW = 100;
 const COOLING = "evaporative";
-const LENS = "balanced";
+const LENS = "resident";
 
 /** Reads one SSE brief response into { text, source }. */
 async function readBrief(h3, lang, audience) {

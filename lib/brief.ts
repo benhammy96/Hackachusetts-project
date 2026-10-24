@@ -87,7 +87,7 @@ export function composeBrief(ctx: BriefContext, lang: LangCode, audience: Audien
   out.push(
     `**${place}** · ${result.mw} MW · ${COOLING_LABEL[result.cooling]} · ${
       t.lenses[result.lens]
-    } · \`${hex.h3}\``,
+    }`,
   );
 
   /* 1 — what the score means ---------------------------------------- */
@@ -118,12 +118,6 @@ export function composeBrief(ctx: BriefContext, lang: LangCode, audience: Audien
       );
     }
     out.push(rows.join("\n"));
-
-    if (result.divergence) {
-      out.push(
-        `${fill(t.lensGap, { gap: result.divergence.gap.toFixed(1) })} ${t.lensGapNote}`,
-      );
-    }
   }
 
   const missing = result.factors.filter((f) => f.status === "unavailable");
