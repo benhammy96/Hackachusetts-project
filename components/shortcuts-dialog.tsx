@@ -42,7 +42,7 @@ export function ShortcutsDialog({
                     <th
                       scope="rowgroup"
                       colSpan={2}
-                      className="overline border-b border-line bg-raised/40 px-4 py-1 text-left"
+                      className="eyebrow border-b border-line bg-raised/40 px-4 py-1 text-left"
                     >
                       {g}
                     </th>

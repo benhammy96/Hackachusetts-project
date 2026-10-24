@@ -17,6 +17,7 @@ export interface LayerToggles {
   /** 3D street view: street tiles, place names and OSM buildings under a tilted camera. */
   mode3d: boolean;
   transmission: boolean;
+  streets: boolean;
   ej: boolean;
   protected: boolean;
   flood: boolean;
@@ -105,7 +106,9 @@ export function useAtlas(): AtlasState {
 export function AtlasProvider({ children }: { children: React.ReactNode }) {
   const [index, setIndex] = React.useState<HexIndex | null>(null);
   const [meta, setMeta] = React.useState<DataMeta | null>(null);
-  const [assumptions, setAssumptions] = React.useState<Assumptions | null>(null);
+  const [assumptions, setAssumptions] = React.useState<Assumptions | null>(
+    null,
+  );
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -125,6 +128,9 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
     // No UI toggle any more; the transmission overlay stays off. The grid-access
     // arc to the nearest qualifying line is driven separately by the selection.
     transmission: false,
+    // Optional live MassGIS vector tiles. The local basemap remains usable
+    // when this is off or the tile service cannot be reached.
+    streets: false,
     ej: false,
     protected: false,
     flood: false,
@@ -180,7 +186,7 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
       setSelectedId(h3);
       if (h3 && opts?.fly && index) {
         const hex = index.get(h3);
-        if (hex) flyTo(hex.lat, hex.lng, 12.5);
+        if (hex) flyTo(hex.lat, hex.lng, 14.5);
       }
     },
     [index, flyTo],
@@ -211,7 +217,10 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
 
   const scenario = React.useMemo<Scenario | null>(() => {
     if (!assumptions) return null;
-    return { ...defaultScenario(assumptions, mw, cooling === "evaporative"), ...override };
+    return {
+      ...defaultScenario(assumptions, mw, cooling === "evaporative"),
+      ...override,
+    };
   }, [assumptions, mw, cooling, override]);
 
   const value: AtlasState = {
@@ -233,7 +242,11 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
     pinned,
     togglePin: React.useCallback((h3: string) => {
       setPinned((p) =>
-        p.includes(h3) ? p.filter((x) => x !== h3) : p.length >= 3 ? p : [...p, h3],
+        p.includes(h3)
+          ? p.filter((x) => x !== h3)
+          : p.length >= 3
+            ? p
+            : [...p, h3],
       );
     }, []),
     clearPins: React.useCallback(() => setPinned([]), []),

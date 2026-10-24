@@ -41,7 +41,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import arcgis  # noqa: E402
 import geo  # noqa: E402
-from sources import FIELD_SOURCES, MASSGIS_REST, OVERPASS, SOURCES, TIGERWEB  # noqa: E402
+from sources import FIELD_SOURCES, MASSGIS_REST, NOTES, OVERPASS, SOURCES, TIGERWEB  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 CACHE = ROOT / "pipeline" / ".cache"
@@ -969,17 +969,7 @@ def main() -> None:
             }
             for f in FIELDS if f != "h3"
         },
-        "notes": [
-            "Values are raw measurements. Scores are computed in the browser from lib/score.ts.",
-            "d_fiber_km is null: no licensed fiber-route dataset is wired into this build. "
-            "d_highway_km is published separately and is explicitly NOT a fiber measurement.",
-            "water_stress is null: no WRC stressed-basin or WRI Aqueduct join in this build. "
-            "in_sw_supply_watershed is used as a documented water-sensitivity proxy instead.",
-            "Distance to a mapped transmission line is not interconnection capacity.",
-            "Polygon intersections are preliminary geospatial screens, not legal determinations.",
-            "Map overlay GeoJSONs are generalised for display; the per-hex flags above come "
-            "from full-resolution queries.",
-        ],
+        "notes": NOTES,
     }
     (OUT_DATA / "meta.json").write_text(json.dumps(meta, indent=2))
     log("wrote public/data/meta.json")

@@ -45,7 +45,7 @@ function Group({
   return (
     <section>
       <div className="mb-1.5 flex items-baseline justify-between gap-2">
-        <h4 className="overline">{title}</h4>
+        <h4 className="eyebrow">{title}</h4>
         <div className="flex items-baseline gap-2">
           {coverage < 1 && (
             <Hint
@@ -58,7 +58,7 @@ function Group({
                 </>
               }
             >
-              <span className="overline cursor-help text-warn">
+              <span className="eyebrow cursor-help text-warn">
                 {fmtPercent(coverage)} measured
               </span>
             </Hint>

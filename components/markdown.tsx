@@ -90,7 +90,7 @@ function parse(src: string): React.ReactNode[] {
         );
       } else {
         out.push(
-          <h4 key={key++} className="overline mt-1">
+          <h4 key={key++} className="eyebrow mt-1">
             {text}
           </h4>,
         );

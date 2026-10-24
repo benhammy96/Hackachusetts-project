@@ -137,7 +137,7 @@ export function SiteInspector({
             A cell is a geographic screening unit, not a parcel and not land for sale.
           </p>
           <Separator className="my-3" />
-          <p className="overline">Start from a known site</p>
+          <p className="eyebrow">Start from a known site</p>
           <ul className="space-y-1">
             {EXAMPLES.map((ex) => (
               <li key={ex.label}>
@@ -146,7 +146,7 @@ export function SiteInspector({
                     const hex = index?.at(ex.lat, ex.lng);
                     if (hex) {
                       select(hex.h3);
-                      flyTo(ex.lat, ex.lng, 12.5);
+                      flyTo(ex.lat, ex.lng, 14.5);
                     }
                   }}
                   className="w-full rounded-[6px] border border-line bg-raised/40 px-2.5 py-2 text-left transition-colors hover:border-subtle hover:bg-raised"
@@ -305,7 +305,7 @@ export function SiteInspector({
                 <div className="text-[12px] font-medium" style={{ color: r.band.color }}>
                   {r.band.label}
                 </div>
-                <div className="overline">Screening estimate</div>
+                <div className="eyebrow">Screening estimate</div>
               </div>
             </div>
 
@@ -566,7 +566,7 @@ function LensRow({
         />
       </div>
       {coverage < 1 && (
-        <span className="overline shrink-0 text-warn">{Math.round(coverage * 100)}%</span>
+        <span className="eyebrow shrink-0 text-warn">{Math.round(coverage * 100)}%</span>
       )}
       <span className="num w-[28px] shrink-0 text-right text-[12px] font-medium text-fg">
         {value === null ? "—" : value.toFixed(1)}
@@ -609,7 +609,7 @@ function Unresolved({ items }: { items: ScoreResult["unresolved"] }) {
     <div className="rounded-[6px] border border-line bg-raised/40 p-2.5">
       <div className="flex items-center gap-1.5">
         <AlertTriangle size={12} className="shrink-0 text-warn" aria-hidden />
-        <span className="overline text-warn">
+        <span className="eyebrow text-warn">
           {items.length} unresolved before this is a real site
         </span>
       </div>
@@ -754,10 +754,10 @@ function MeasurementsTable({ hex }: { hex: HexRecord }) {
       </colgroup>
       <thead>
         <tr className="border-b border-line">
-          <th scope="col" className="overline py-1 text-left font-semibold">
+          <th scope="col" className="eyebrow py-1 text-left font-semibold">
             Measure
           </th>
-          <th scope="col" className="overline py-1 text-right font-semibold">
+          <th scope="col" className="eyebrow py-1 text-right font-semibold">
             Value
           </th>
         </tr>

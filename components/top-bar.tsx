@@ -100,7 +100,7 @@ export function TopBar({
 
       <div className="ml-2 flex min-w-0 flex-1 items-center gap-2 overflow-x-auto">
         <div className="flex shrink-0 items-center gap-1.5">
-          <span className="overline hidden min-[1600px]:inline">Size</span>
+          <span className="eyebrow hidden min-[1600px]:inline">Size</span>
           <SegmentedControl
             label="Peak demand preset"
             value={mw}
@@ -127,7 +127,7 @@ export function TopBar({
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5">
-          <span className="overline hidden min-[1600px]:inline">Cooling</span>
+          <span className="eyebrow hidden min-[1600px]:inline">Cooling</span>
           <Select<Cooling>
             label="Cooling design"
             value={cooling}
@@ -140,7 +140,7 @@ export function TopBar({
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5">
-          <span className="overline hidden min-[1600px]:inline">Lens</span>
+          <span className="eyebrow hidden min-[1600px]:inline">Lens</span>
           <SegmentedControl
             label="Scoring lens"
             value={lens}

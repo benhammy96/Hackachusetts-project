@@ -84,7 +84,7 @@ export function CommandMenu({
   const goTo = React.useCallback(
     (hex: HexRecord) => {
       select(hex.h3);
-      flyTo(hex.lat, hex.lng, 12.5);
+      flyTo(hex.lat, hex.lng, 14.5);
       onOpenChange(false);
     },
     [select, flyTo, onOpenChange],
@@ -226,7 +226,7 @@ export function CommandMenu({
               return (
                 <React.Fragment key={item.id}>
                   {heading && (
-                    <div role="presentation" className="overline px-2 pb-1 pt-2">
+                    <div role="presentation" className="eyebrow px-2 pb-1 pt-2">
                       {heading}
                     </div>
                   )}

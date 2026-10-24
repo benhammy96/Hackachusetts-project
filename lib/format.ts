@@ -60,6 +60,22 @@ export function titleCase(s: string | null | undefined): string {
     .join(" ");
 }
 
+/** A plain figure with grouping and up to four decimals, e.g. 0.2003, 8,760. */
+export function fmtNumber(v: number | null | undefined): string {
+  if (v === null || v === undefined || !isFinite(v)) return NOT_AVAILABLE;
+  return v.toLocaleString("en-US", { maximumFractionDigits: 4 });
+}
+
+/** "24 Oct 2026, 19:27 UTC". Fixed to UTC so it matches the build log. */
+export function fmtUtcDateTime(iso: string): string {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return NOT_AVAILABLE;
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const hh = String(d.getUTCHours()).padStart(2, "0");
+  const mm = String(d.getUTCMinutes()).padStart(2, "0");
+  return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}, ${hh}:${mm} UTC`;
+}
+
 export function fmtLatLng(lat: number, lng: number): string {
   return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
 }

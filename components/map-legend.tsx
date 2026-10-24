@@ -21,6 +21,12 @@ const OVERLAYS: {
   note: string;
 }[] = [
   {
+    key: "streets",
+    label: "Streets",
+    swatch: "#8193A3",
+    note: "Live MassGIS Base Streets vector tiles, shown for map context only. Local streets appear as you zoom in. This layer requires a network connection and does not affect the score. In the 3D view, OpenStreetMap streets replace it.",
+  },
+  {
     key: "ej",
     label: "EJ block groups",
     swatch: "#E6B765",
@@ -55,10 +61,13 @@ type MapView = "2d" | "3d";
 export function MapLegend({
   basemapFailed,
   streetsFailed,
+  streets3dActive,
   overlayState,
 }: {
   basemapFailed: boolean;
   streetsFailed: boolean;
+  /** The 3D view's OpenStreetMap streets are showing, so the MassGIS overlay steps aside. */
+  streets3dActive: boolean;
   overlayState: OverlayStateMap;
 }) {
   const { layers, setLayer, meta } = useAtlas();
@@ -70,7 +79,7 @@ export function MapLegend({
   return (
     <>
       {(basemapFailed || streetsFailed) && (
-        <div className="absolute left-3 top-3 z-10 flex max-w-[320px] flex-col gap-1.5">
+        <div className="absolute left-3 top-[72px] z-10 flex max-w-[320px] flex-col gap-1.5">
           {basemapFailed && (
             <Notice>
               Part of the basemap geometry did not load. Scores are unaffected — they come
@@ -95,7 +104,7 @@ export function MapLegend({
             aria-expanded={legendOpen}
             className="flex min-w-0 flex-1 items-center gap-1.5 text-left"
           >
-            <span className="overline">Suitability, 0–10</span>
+            <span className="eyebrow">Suitability, 0–10</span>
             <ChevronDown
               size={12}
               aria-hidden
@@ -189,12 +198,26 @@ export function MapLegend({
               checked={layers.extrude}
               onChange={(v) => setLayer("extrude", v)}
             />
+            <div className="flex min-h-[32px] items-center gap-2 px-1.5 py-1">
+              <span
+                aria-hidden
+                className="h-2.5 w-2.5 shrink-0 rounded-[2px] border border-[#539ebe] bg-[#12374b]"
+              />
+              <span className="min-w-0 flex-1 text-[12px] text-fg">Open water</span>
+              <span className="eyebrow shrink-0">Mapped</span>
+            </div>
             <div className="my-1 h-px bg-line" />
             {OVERLAYS.map((o) => {
               const st = o.state ? overlayState[o.state] : undefined;
               const on = layers[o.key];
-              const detail =
-                on && st?.loading ? "loading" : on && st?.error ? "failed" : undefined;
+              const stepsAside = o.key === "streets" && streets3dActive;
+              const detail = stepsAside
+                ? "Off in 3D"
+                : on && st?.loading
+                  ? "loading"
+                  : on && st?.error
+                    ? "failed"
+                    : undefined;
               return (
                 <div key={o.key} className="flex items-center gap-1">
                   <div className="min-w-0 flex-1">
@@ -204,6 +227,7 @@ export function MapLegend({
                       checked={on}
                       onChange={(v) => setLayer(o.key, v)}
                       detail={detail}
+                      disabled={stepsAside}
                     />
                   </div>
                   <InfoDot side="left" content={o.note} label={`About ${o.label}`} />

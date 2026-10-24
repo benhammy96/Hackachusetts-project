@@ -10,6 +10,10 @@ status values (see UI_DESIGN.md section 12):
   modeled     - derived from publisher data with a documented assumption
   proxy       - a stand-in variable that is not the thing being measured
   unavailable - no data loaded in this build
+
+A source that feeds no published field directly carries a `role` saying what
+it is used for (a hard exclusion screen, or the basemap), so the provenance
+dialog can list it rather than drop it.
 """
 
 MASSGIS_REST = "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services"
@@ -28,6 +32,7 @@ SOURCES = {
         "vintage": "TIGERweb current",
         "license": "US Government work, public domain",
         "status": "verified",
+        "role": "basemap",
     },
     "massgis_hydro": {
         "name": "MassGIS Major Hydrography (lakes and ponds)",
@@ -37,7 +42,22 @@ SOURCES = {
         "vintage": "MassGIS current",
         "license": "MassGIS open data",
         "status": "verified",
+        "role": "basemap",
         "caveat": "Used only to draw the basemap, not in any score.",
+    },
+    "massgis_base_streets": {
+        "name": "MassGIS Base Streets",
+        "publisher": "MassGIS",
+        "url": "https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/MassGIS_Roads/VectorTileServer",
+        "landing_page": "https://www.mass.gov/info-details/massgis-data-base-streets",
+        "vintage": "MassGIS current, loaded as live vector tiles",
+        "license": "MassGIS open data",
+        "status": "verified",
+        "role": "basemap",
+        "caveat": (
+            "Optional display layer only; it requires a network connection and is not "
+            "used in any score or distance measurement."
+        ),
     },
     "massgis_towns": {
         "name": "MassGIS Census 2020 Towns",
@@ -57,9 +77,9 @@ SOURCES = {
         "license": "MassGIS open data / public domain",
         "status": "verified",
         "caveat": (
-            "pop_1km sums POP20 for census blocks whose Census-assigned internal "
-            "point falls within 1 km of the hex centre. Block-level geography keeps "
-            "the aggregation error small but the result is still an estimate."
+            "Residents within 1 km sums POP20 for census blocks whose Census-assigned "
+            "internal point falls within 1 km of the cell centre. Block-level geography "
+            "keeps the aggregation error small but the result is still an estimate."
         ),
     },
     "massgis_ej2020": {
@@ -83,6 +103,7 @@ SOURCES = {
         "vintage": "continuously updated",
         "license": "MassGIS open data",
         "status": "verified",
+        "role": "exclusion",
     },
     "massdep_wetlands": {
         "name": "MassDEP Wetlands (DEP Wetland Areas)",
@@ -92,6 +113,7 @@ SOURCES = {
         "vintage": "MassDEP wetlands programme",
         "license": "MassGIS open data",
         "status": "verified",
+        "role": "exclusion",
     },
     "fema_nfhl": {
         "name": "FEMA National Flood Hazard Layer (served by MassGIS)",
@@ -110,6 +132,7 @@ SOURCES = {
         "vintage": "MassDEP current",
         "license": "MassGIS open data",
         "status": "verified",
+        "role": "exclusion",
     },
     "massdep_zonea": {
         "name": "MassDEP Surface Water Protection Zone A",
@@ -119,6 +142,7 @@ SOURCES = {
         "vintage": "MassDEP current",
         "license": "MassGIS open data",
         "status": "verified",
+        "role": "exclusion",
     },
     "massdep_zone2": {
         "name": "MassDEP Approved Wellhead Protection Areas (Zone II) and IWPA",
@@ -164,6 +188,7 @@ SOURCES = {
         "vintage": "DPH current",
         "license": "MassGIS open data",
         "status": "verified",
+        "role": "school_or_hospital_500m",
     },
     "massgis_highways": {
         "name": "MassGIS Major Highways",
@@ -206,7 +231,7 @@ SOURCES = {
         "publisher": "OpenStreetMap contributors (via Overpass API)",
         "url": OVERPASS,
         "landing_page": "https://wiki.openstreetmap.org/wiki/Tag:power%3Dline",
-        "vintage": "live extract, see fetched_at",
+        "vintage": "live extract at grid build time",
         "license": "ODbL 1.0",
         "status": "verified",
         "caveat": (
@@ -219,7 +244,7 @@ SOURCES = {
         "publisher": "OpenStreetMap contributors (via Overpass API)",
         "url": OVERPASS,
         "landing_page": "https://wiki.openstreetmap.org/wiki/Tag:power%3Dplant",
-        "vintage": "live extract, see fetched_at",
+        "vintage": "live extract at grid build time",
         "license": "ODbL 1.0",
         "status": "proxy",
         "caveat": (
@@ -228,6 +253,22 @@ SOURCES = {
         ),
     },
 }
+
+# Build-level limits, written for the reader of the provenance dialog. Plain
+# language, no field codes.
+NOTES = [
+    "Fiber routes are not measured. No licensed fiber-route dataset is loaded, so the "
+    "fiber factor is left out of the score. Distance to a major highway is shown "
+    "separately as road access. It is not a fiber measurement.",
+    "Water stress is not measured. No stressed-basin index is loaded, so the water "
+    "factor is left out of the score. Supply-watershed membership and Zone II "
+    "distance are shown as evidence only.",
+    "Distance to a mapped transmission line is not interconnection capacity.",
+    "Polygon overlaps are preliminary screens, not legal determinations.",
+    "Map overlays are simplified for display. The per-cell flags come from "
+    "full-resolution queries.",
+    "The grid holds raw measurements. Scores are calculated in your browser from them.",
+]
 
 # Field -> source id and measurement status. Drives meta.json and the UI
 # provenance rows. Keep in sync with lib/types.ts HexRecord.

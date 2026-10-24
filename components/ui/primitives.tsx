@@ -149,7 +149,7 @@ export function StatusTag({ status, className }: { status: Status; className?: s
           ? "text-warn/90"
           : "text-muted";
   return (
-    <span className={cn("overline shrink-0", tone, className)} title={describeStatus(status)}>
+    <span className={cn("eyebrow shrink-0", tone, className)} title={describeStatus(status)}>
       {STATUS_LABEL[status] ?? status}
     </span>
   );
@@ -258,7 +258,7 @@ export function Toggle({
         />
       )}
       <span className="min-w-0 flex-1 truncate text-[12px] text-fg">{label}</span>
-      {detail && <span className="overline shrink-0">{detail}</span>}
+      {detail && <span className="eyebrow shrink-0">{detail}</span>}
     </label>
   );
 }

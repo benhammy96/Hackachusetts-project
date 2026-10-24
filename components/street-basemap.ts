@@ -22,8 +22,11 @@ const STREETS_ATTRIBUTION =
   '<a href="https://www.openmaptiles.org/" target="_blank" rel="noreferrer">© OpenMapTiles</a> ' +
   'Data from <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>';
 
-/** Ground-level deck layers (grid, overlays) are drawn just beneath this road layer. */
-export const STREETS_GROUND_BEFORE = "st-road-path";
+/**
+ * Ground-level deck layers (grid, overlays) are drawn just beneath water, so
+ * water and roads stay readable above the score tint, as in the 2D map.
+ */
+export const STREETS_GROUND_BEFORE = "st-water";
 /** 3D deck layers are drawn beneath the first label so names stay on top. */
 export const STREETS_LABEL_BEFORE = "st-label-water";
 
@@ -111,23 +114,6 @@ const LAYERS: LayerSpecification[] = [
     paint: { "fill-color": "#13201B", "fill-opacity": 0.9 },
   },
   {
-    id: "st-water",
-    type: "fill",
-    ...SRC,
-    "source-layer": "water",
-    layout: HIDDEN,
-    paint: { "fill-color": "#0B1520" },
-  },
-  {
-    id: "st-waterway",
-    type: "line",
-    ...SRC,
-    "source-layer": "waterway",
-    minzoom: 10,
-    layout: HIDDEN,
-    paint: { "line-color": "#0B1520", "line-width": width([[10, 0.5], [18, 4]]) },
-  },
-  {
     id: "st-aeroway",
     type: "fill",
     ...SRC,
@@ -138,6 +124,23 @@ const LAYERS: LayerSpecification[] = [
     paint: { "fill-color": "#161E27" },
   },
 
+  {
+    id: "st-water",
+    type: "fill",
+    ...SRC,
+    "source-layer": "water",
+    layout: HIDDEN,
+    paint: { "fill-color": "#12374B", "fill-outline-color": "#539EBE" },
+  },
+  {
+    id: "st-waterway",
+    type: "line",
+    ...SRC,
+    "source-layer": "waterway",
+    minzoom: 10,
+    layout: HIDDEN,
+    paint: { "line-color": "#1F5A75", "line-width": width([[10, 0.5], [18, 4]]) },
+  },
   /* --- roads ----------------------------------------------------------- */
   {
     id: "st-road-path",
@@ -279,7 +282,7 @@ const LAYERS: LayerSpecification[] = [
       "text-size": 11,
       "text-max-width": 8,
     },
-    paint: { "text-color": "#56708A", "text-halo-color": HALO, "text-halo-width": 1.2 },
+    paint: { "text-color": "#7BBED8", "text-halo-color": HALO, "text-halo-width": 1.2 },
   },
   {
     id: "st-label-road",

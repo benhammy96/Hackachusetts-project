@@ -195,6 +195,14 @@ function Shell() {
       keywords: "3d columns height",
       run: () => atlas.setLayer("extrude", !atlas.layers.extrude),
     },
+    {
+      id: "layer-streets",
+      group: "Map",
+      label: `${atlas.layers.streets ? "Hide" : "Show"} the MassGIS street lines`,
+      keywords: "roads streets layer overlay",
+      disabledReason: atlas.layers.mode3d ? "The 3D view shows its own streets" : undefined,
+      run: () => atlas.setLayer("streets", !atlas.layers.streets),
+    },
     ...(
       [
         ["ej", "EJ block groups"],

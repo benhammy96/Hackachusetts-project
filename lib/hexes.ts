@@ -36,6 +36,9 @@ export interface SourceMeta {
   license: string;
   status: string;
   caveat?: string;
+  /** Set when the source feeds no published field directly: `basemap`,
+   *  `exclusion`, or the id of the field it is combined into. */
+  role?: string;
 }
 
 export interface DataMeta {
@@ -177,6 +180,7 @@ export function haversineKm(
   const la1 = (a.lat * Math.PI) / 180;
   const la2 = (b.lat * Math.PI) / 180;
   const h =
-    Math.sin(dLat / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2;
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(h));
 }

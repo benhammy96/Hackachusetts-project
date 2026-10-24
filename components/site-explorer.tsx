@@ -292,7 +292,7 @@ function RankedView() {
             className="flex h-6 items-center gap-1.5 rounded-[6px] px-1 text-left hover:bg-raised"
           >
             <SlidersHorizontal size={11} aria-hidden className="text-subtle" />
-            <span className="overline">Filters</span>
+            <span className="eyebrow">Filters</span>
             {chips.length > 0 && <span className="num text-[10px] text-accent">{chips.length}</span>}
           </button>
           {chips.length > 0 && (
@@ -328,7 +328,7 @@ function RankedView() {
         {showFilters && (
           <div id="explorer-filters" className="border-t border-line px-2 pb-2 pt-1.5">
             <div className="mb-1 flex items-center gap-1.5">
-              <span className="overline">Land class, 2016</span>
+              <span className="eyebrow">Land class, 2016</span>
               <InfoDot
                 content={
                   <>
@@ -460,7 +460,7 @@ function RankedView() {
                   const isSel = selected?.h3 === row.hex.h3;
                   const go = () => {
                     select(row.hex.h3);
-                    flyTo(row.hex.lat, row.hex.lng, 12);
+                    flyTo(row.hex.lat, row.hex.lng, 14.5);
                   };
                   return (
                     <tr
@@ -577,7 +577,7 @@ function SortHeader({
         align === "left" ? "justify-start" : "justify-end"
       } ${active ? "text-fg" : "text-subtle hover:text-muted"}`}
     >
-      <span className="overline" style={active ? { color: "var(--color-fg)" } : undefined}>
+      <span className="eyebrow" style={active ? { color: "var(--color-fg)" } : undefined}>
         {label}
       </span>
       {active &&
@@ -662,13 +662,13 @@ function PinnedView({ onOpenCompare }: { onOpenCompare: () => void }) {
           </colgroup>
           <thead>
             <tr className="h-7 border-b border-line">
-              <th scope="col" className="overline px-2 text-left font-semibold">
+              <th scope="col" className="eyebrow px-2 text-left font-semibold">
                 Site
               </th>
-              <th scope="col" className="overline px-1.5 text-right font-semibold">
+              <th scope="col" className="eyebrow px-1.5 text-right font-semibold">
                 Grid
               </th>
-              <th scope="col" className="overline px-1.5 text-right font-semibold">
+              <th scope="col" className="eyebrow px-1.5 text-right font-semibold">
                 Score
               </th>
               <th scope="col">
