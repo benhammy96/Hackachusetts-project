@@ -20,7 +20,9 @@ export function BriefPanel({
   const [lang, setLang] = React.useState<LangCode>("en");
   const [audience, setAudience] = React.useState<Audience>("community");
   const [text, setText] = React.useState("");
-  const [source, setSource] = React.useState<"bedrock" | "offline" | "cache" | null>(null);
+  const [source, setSource] = React.useState<
+    "bedrock" | "offline" | "cache" | null
+  >(null);
   const [notice, setNotice] = React.useState<string | null>(null);
   const [streaming, setStreaming] = React.useState(false);
   const abort = React.useRef<AbortController | null>(null);
@@ -70,7 +72,14 @@ export function BriefPanel({
       const res = await fetch("/api/brief", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ h3: selected.h3, mw, cooling, lens, lang, audience }),
+        body: JSON.stringify({
+          h3: selected.h3,
+          mw,
+          cooling,
+          lens,
+          lang,
+          audience,
+        }),
         signal: ac.signal,
       });
       if (!res.ok || !res.body) {
@@ -135,15 +144,22 @@ export function BriefPanel({
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <Dialog.Title className="text-[14px] font-semibold text-fg">
-                  {audience === "developer" ? "Developer screening report" : "Town-meeting brief"}
+                  {audience === "developer"
+                    ? "Developer screening report"
+                    : "Town-meeting brief"}
                 </Dialog.Title>
                 <p id="brief-desc" className="mt-0.5 text-[11px] text-subtle">
-                  Every figure comes from the score engine. The writer cannot add numbers of
-                  its own.
+                  Every figure comes from the score engine. The writer cannot
+                  add numbers of its own.
                 </p>
               </div>
               <Dialog.Close asChild>
-                <Button variant="ghost" size="sm" className="h-7 w-7 shrink-0 px-0" aria-label="Close">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 shrink-0 px-0"
+                  aria-label="Close"
+                >
                   <X size={14} aria-hidden />
                 </Button>
               </Dialog.Close>
@@ -202,12 +218,6 @@ export function BriefPanel({
           </div>
 
           <div className="flex shrink-0 items-center gap-2 border-t border-line px-4 py-2.5">
-            {source === "offline" && (
-              <span className="flex items-center gap-1.5 text-[10.5px] text-warn">
-                <WifiOff size={11} aria-hidden />
-                Offline — composed from measured values
-              </span>
-            )}
             {source === "cache" && (
               <span className="flex items-center gap-1.5 text-[10.5px] text-warn">
                 <WifiOff size={11} aria-hidden />
@@ -215,7 +225,9 @@ export function BriefPanel({
               </span>
             )}
             {source === "bedrock" && (
-              <span className="text-[10.5px] text-subtle">Written by Claude on Bedrock</span>
+              <span className="text-[10.5px] text-subtle">
+                Written by Claude on Bedrock
+              </span>
             )}
             <div className="ml-auto flex gap-1.5">
               <Button
@@ -229,8 +241,16 @@ export function BriefPanel({
                 <Copy size={12} aria-hidden />
                 Copy
               </Button>
-              <Button size="sm" onClick={() => void generate()} disabled={streaming}>
-                <RefreshCw size={12} aria-hidden className={streaming ? "animate-spin" : ""} />
+              <Button
+                size="sm"
+                onClick={() => void generate()}
+                disabled={streaming}
+              >
+                <RefreshCw
+                  size={12}
+                  aria-hidden
+                  className={streaming ? "animate-spin" : ""}
+                />
                 Regenerate
               </Button>
             </div>

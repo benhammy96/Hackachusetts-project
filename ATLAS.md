@@ -331,7 +331,7 @@ Tools the agent can call (all run server-side using the same `lib/score.ts` and 
 | `get_eo658_checklist` | `mw`                                           | List of requirements that apply at that size (empty list at 25 MW or below, with a note) |
 | `find_alternatives`   | `h3, mw, cooling, lens, radius_km = 25, k = 3` | Top k higher-scoring, non-excluded hexes with town, score, and one-line reason           |
 
-System prompt rules: plain language, no invented numbers, cite factor names, exactly 5 questions, end with "Scores are a planning aid, not a permitting decision."
+System prompt rules: plain language, no invented numbers, cite factor names, exactly 5 questions.
 
 ---
 

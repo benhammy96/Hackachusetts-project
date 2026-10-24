@@ -56,7 +56,6 @@ export interface Strings {
 
   modelledSpend: string;
 
-  closing: string;
   templateNote: string;
 
   bands: Record<BandKey, string>;
@@ -115,7 +114,6 @@ const EN: Strings = {
 
   modelledSpend: "Modelled annual electricity spend at this size is {usd}.",
 
-  closing: "Scores are a planning aid, not a permitting decision.",
   templateNote:
     "Written offline from measured values using a fixed template, with no language model involved.",
 
@@ -204,7 +202,6 @@ const ES: Strings = {
 
   modelledSpend: "El gasto anual de electricidad modelado a este tamaño es de {usd}.",
 
-  closing: "Las puntuaciones son una ayuda para la planificación, no una decisión de permisos.",
   templateNote:
     "Redactado sin conexión a partir de valores medidos con una plantilla fija, sin ningún modelo de lenguaje.",
 
@@ -293,7 +290,6 @@ const PT: Strings = {
 
   modelledSpend: "A despesa anual de eletricidade modelada neste tamanho é de {usd}.",
 
-  closing: "As pontuações são um apoio ao planeamento, não uma decisão de licenciamento.",
   templateNote:
     "Escrito offline a partir de valores medidos com um modelo fixo, sem qualquer modelo de linguagem.",
 
@@ -381,7 +377,6 @@ const HT: Strings = {
 
   modelledSpend: "Depans elektrisite anyèl modle nan gwosè sa a se {usd}.",
 
-  closing: "Nòt yo se yon zouti planifikasyon, se pa yon desizyon pèmi.",
   templateNote:
     "Ekri san entènèt soti nan valè mezire ak yon modèl fiks, san okenn modèl lang.",
 
@@ -470,7 +465,6 @@ const VI: Strings = {
 
   modelledSpend: "Chi phí điện hằng năm theo mô hình ở quy mô này là {usd}.",
 
-  closing: "Điểm số là công cụ hỗ trợ quy hoạch, không phải quyết định cấp phép.",
   templateNote:
     "Được viết ngoại tuyến từ các giá trị đã đo bằng một mẫu cố định, không dùng mô hình ngôn ngữ.",
 
@@ -556,7 +550,6 @@ const ZH: Strings = {
 
   modelledSpend: "该规模下建模的年度电费为 {usd}。",
 
-  closing: "评分仅作规划参考，不构成许可决定。",
   templateNote: "离线根据实测值按固定模板生成，未使用任何语言模型。",
 
   bands: {
@@ -644,7 +637,6 @@ const SQ: Strings = {
 
   modelledSpend: "Shpenzimi vjetor i modeluar i energjisë në këtë përmasë është {usd}.",
 
-  closing: "Pikëzimet janë një ndihmë për planifikim, jo një vendim lejeje.",
   templateNote:
     "Shkruar jashtë linje nga vlera të matura me një shabllon fiks, pa asnjë model gjuhësor.",
 

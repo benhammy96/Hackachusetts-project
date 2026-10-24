@@ -6,11 +6,11 @@ gaps both visible.
 
 ## Who it is for
 
-| Reader | Their question | What Atlas gives them |
-| --- | --- | --- |
-| Resident or select board | Should we fight this or welcome it? | Plain-language brief, factor breakdown, five questions to ask |
-| Developer or utility planner | Where can we build without a long fight? | Fatal-flaw screening, EO 658 checklist, due-diligence list |
-| State planner or journalist | Where should Massachusetts steer this? | Statewide suitability map, ranked cells |
+| Reader                       | Their question                           | What Atlas gives them                                         |
+| ---------------------------- | ---------------------------------------- | ------------------------------------------------------------- |
+| Resident or select board     | Should we fight this or welcome it?      | Plain-language brief, factor breakdown, five questions to ask |
+| Developer or utility planner | Where can we build without a long fight? | Fatal-flaw screening, EO 658 checklist, due-diligence list    |
+| State planner or journalist  | Where should Massachusetts steer this?   | Statewide suitability map, ranked cells                       |
 
 ## The product is the evidence, not the score
 
@@ -37,8 +37,3 @@ Three rules carry more weight than anything else in this repo:
   that a community "will oppose" something.
 - Not legal advice. The EO 658 checklist is informational and cites its sections
   so a reader can check the primary text.
-
-## Standing caveat
-
-Every surface that shows a score ends with: *Scores are a planning aid, not a
-permitting decision.*

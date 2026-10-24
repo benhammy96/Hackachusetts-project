@@ -79,7 +79,7 @@ function Shell() {
     const payload = {
       exported_at: new Date().toISOString(),
       disclaimer:
-        "Atlas screening output. Preliminary geospatial screens, not legal or engineering determinations. Scores are a planning aid, not a permitting decision.",
+        "Atlas screening output. Preliminary geospatial screens, not legal or engineering determinations.",
       settings: { mw, cooling, lens },
       cell: selected,
       score: selectedScore,

@@ -182,9 +182,7 @@ export function composeBrief(ctx: BriefContext, lang: LangCode, audience: Audien
     );
   }
 
-  out.push(
-    `---\n_${t.measurementNote}_\n\n_${t.templateNote}_\n\n**${t.closing}**`,
-  );
+  out.push(`---\n_${t.measurementNote}_\n\n_${t.templateNote}_`);
   return out.join("\n\n");
 }
 
@@ -216,6 +214,5 @@ export function systemPrompt(lang: LangCode, audience: Audience): string {
     "7. Never call a location available or for sale. A cell is a geographic screening unit, not a parcel.",
     "8. Treat Executive Order 658 as informational, not legal advice.",
     "9. Plain markdown only: headings, short paragraphs, lists. No tables, no emoji, no preamble about being an AI.",
-    "10. End with exactly this sentence on its own line, translated into the target language: Scores are a planning aid, not a permitting decision.",
   ].join("\n");
 }

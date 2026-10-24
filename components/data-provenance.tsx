@@ -235,12 +235,6 @@ export function DataProvenance({
               </>
             )}
           </div>
-
-          <footer className="shrink-0 border-t border-line px-5 py-3">
-            <p className="text-[11px] text-subtle">
-              Scores are a planning aid, not a permitting decision.
-            </p>
-          </footer>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
