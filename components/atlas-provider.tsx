@@ -14,6 +14,8 @@ import type { Cooling, HexRecord, Lens, ScoreResult } from "@/lib/types";
 export interface LayerToggles {
   hexes: boolean;
   extrude: boolean;
+  /** 3D street view: street tiles, place names and OSM buildings under a tilted camera. */
+  mode3d: boolean;
   transmission: boolean;
   streets: boolean;
   ej: boolean;
@@ -33,8 +35,14 @@ export interface CameraTarget {
   lat: number;
   lng: number;
   zoom?: number;
+  /** Only set when a request must also level or rotate the camera. */
+  pitch?: number;
+  bearing?: number;
   nonce: number;
 }
+
+/** The statewide view the opening fly-in settles on. */
+export const STATE_VIEW = { lat: 42.25, lng: -71.4, zoom: 7.9 } as const;
 
 interface AtlasState {
   /* data */
@@ -67,7 +75,14 @@ interface AtlasState {
   layers: LayerToggles;
   setLayer: (k: keyof LayerToggles, v: boolean) => void;
   camera: CameraTarget | null;
-  flyTo: (lat: number, lng: number, zoom?: number) => void;
+  flyTo: (
+    lat: number,
+    lng: number,
+    zoom?: number,
+    view?: { pitch?: number; bearing?: number },
+  ) => void;
+  /** Clear the selection, leave 3D and return to the statewide plan view. */
+  resetView: () => void;
 
   /* explorer */
   filters: ExplorerFilters;
@@ -109,6 +124,7 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
   const [layers, setLayers] = React.useState<LayerToggles>({
     hexes: true,
     extrude: false,
+    mode3d: false,
     // No UI toggle any more; the transmission overlay stays off. The grid-access
     // arc to the nearest qualifying line is driven separately by the selection.
     transmission: false,
@@ -151,10 +167,19 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const flyTo = React.useCallback((lat: number, lng: number, zoom?: number) => {
-    nonce.current += 1;
-    setCamera({ lat, lng, zoom, nonce: nonce.current });
-  }, []);
+  const flyTo = React.useCallback(
+    (lat: number, lng: number, zoom?: number, view?: { pitch?: number; bearing?: number }) => {
+      nonce.current += 1;
+      setCamera({ lat, lng, zoom, ...view, nonce: nonce.current });
+    },
+    [],
+  );
+
+  const resetView = React.useCallback(() => {
+    setSelectedId(null);
+    setLayers((s) => ({ ...s, mode3d: false }));
+    flyTo(STATE_VIEW.lat, STATE_VIEW.lng, STATE_VIEW.zoom, { pitch: 0, bearing: 0 });
+  }, [flyTo]);
 
   const select = React.useCallback(
     (h3: string | null, opts?: { fly?: boolean }) => {
@@ -232,6 +257,7 @@ export function AtlasProvider({ children }: { children: React.ReactNode }) {
     ),
     camera,
     flyTo,
+    resetView,
     filters,
     setFilters: React.useCallback(
       (f) => setFiltersState((s) => ({ ...s, ...f })),

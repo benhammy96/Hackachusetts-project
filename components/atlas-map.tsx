@@ -29,25 +29,43 @@ import { useAtlas } from "./atlas-provider";
 import { useGeoJson, prefersReducedMotion } from "./use-geojson";
 import { MapLegend } from "./map-legend";
 import { HexTooltip } from "./hex-tooltip";
+import { MapStatusBar } from "./map-status-bar";
+import {
+  BUILDINGS_MIN_ZOOM,
+  STREETS_GLYPHS,
+  STREETS_GROUND_BEFORE,
+  STREETS_LABEL_BEFORE,
+  STREETS_SOURCE_ID,
+  ensureStreetLayers,
+  setStreetLayersVisible,
+} from "./street-basemap";
 import { colorForScore } from "@/lib/score";
 import { titleCase } from "@/lib/format";
 import type { HexRecord } from "@/lib/types";
 
 const ATTRIBUTION = [
-  'Basemap and screening layers: <a href="https://www.mass.gov/orgs/massgis-bureau-of-geographic-information" target="_blank" rel="noreferrer">MassGIS</a>, FEMA NFHL, US Census',
-  'Transmission: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors (ODbL)',
+  '<a href="https://www.mass.gov/orgs/massgis-bureau-of-geographic-information" target="_blank" rel="noreferrer">MassGIS</a> · FEMA NFHL · US Census',
+  'Transmission © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>',
 ];
 
 /**
- * The core map has no tile-service dependency.
+ * The default 2D map has no tile-service dependency.
  *
- * The basemap is drawn from the same MassGIS geometry the pipeline downloads:
+ * UI_DESIGN.md section 6 asks for a custom low-noise dark basemap, and
+ * ATLAS.md requires the demo to work without a live external API. So the
+ * basemap is drawn from the same MassGIS geometry the pipeline downloads:
  * water, town boundaries and the state outline, all shipped as static GeoJSON.
- * The optional Streets toggle adds live MassGIS vector tiles; tile failure does
- * not affect the local basemap, grid, or scoring data.
+ * Nothing here needs a key.
+ *
+ * Two optional layers use live tiles, and neither affects the grid or scoring:
+ * - Streets (2D): MassGIS road vector tiles.
+ * - 3D view: OpenStreetMap roads, place names and buildings (street-basemap.ts),
+ *   falling back to this basemap if they cannot load. `glyphs` is only fetched
+ *   once those street labels render.
  */
 const STYLE: StyleSpecification = {
   version: 8,
+  glyphs: STREETS_GLYPHS,
   sources: {},
   layers: [
     // The canvas outside Massachusetts is predominantly Atlantic water. Town
@@ -55,6 +73,18 @@ const STYLE: StyleSpecification = {
     { id: "bg", type: "background", paint: { "background-color": "#0D2230" } },
   ],
 };
+
+/** Back Bay to the Financial District: the Prudential, Copley and State Street. */
+const BOSTON_3D: { center: LngLat; zoom: number } = { center: [-71.068, 42.3535], zoom: 15.1 };
+const PITCH_3D = 58;
+const BEARING_3D = -24;
+
+/**
+ * Flat layers all lie on the ground plane. Sharing MapLibre's depth buffer,
+ * coplanar polygons z-fight and the grid speckles, so they skip the depth test
+ * and draw in stack order. Only extruded geometry is depth-tested.
+ */
+const FLAT = { parameters: { depthCompare: "always", depthWriteEnabled: false } } as const;
 
 /* Basemap palette: charcoal land and clearly visible, subdued blue water. */
 const LAND_FILL: [number, number, number, number] = [23, 30, 38, 255];
@@ -110,10 +140,27 @@ export function AtlasMap() {
     y: number;
   } | null>(null);
   const flownIn = React.useRef(false);
+  const [cursor, setCursor] = React.useState<{ lat: number; lng: number } | null>(null);
+  const [view, setView] = React.useState({ pitch: 0, bearing: 0 });
   /** Town under the map centre, kept for the location readout. */
   const [centerTown, setCenterTown] = React.useState<string | null | undefined>(
     undefined,
   );
+
+  /* 3D street view state. Refs mirror values the camera effects read without
+     re-running on every selection change. */
+  const [streetsAdded, setStreetsAdded] = React.useState(false);
+  const [streetsFailed, setStreetsFailed] = React.useState(false);
+  const streetsLoadedOnce = React.useRef(false);
+  const mode3dRef = React.useRef(layers.mode3d);
+  const prevMode3d = React.useRef(layers.mode3d);
+  const selectedRef = React.useRef(selected);
+  mode3dRef.current = layers.mode3d;
+  selectedRef.current = selected;
+
+  // The 3D view's OpenStreetMap tiles replace the local basemap only once they
+  // are in the style and have not failed; otherwise the offline basemap stays.
+  const osmStreets = layers.mode3d && streetsAdded && !streetsFailed;
 
   // Transmission is needed both as an overlay and to draw the arc from a
   // selected site to the nearest qualifying line, so it loads up front.
@@ -151,12 +198,46 @@ export function AtlasMap() {
     );
     map.addControl(new ScaleControl({ unit: "metric" }), "bottom-left");
 
-    const overlay = new MapLibreOverlay({ interleaved: false, layers: [] });
+    // Interleaved so deck layers share MapLibre's depth buffer: the grid can sit
+    // beneath roads and labels, and 3D buildings correctly hide what is behind
+    // them. If the browser cannot share a WebGL2 context, fall back to drawing
+    // deck on its own canvas over the map, which is how the 2D map always worked.
+    let overlay: MapLibreOverlay;
+    try {
+      overlay = new MapLibreOverlay({ interleaved: true, layers: [] });
+      map.addControl(overlay);
+    } catch {
+      overlay = new MapLibreOverlay({ interleaved: false, layers: [] });
+      map.addControl(overlay);
+    }
     overlayRef.current = overlay;
-    map.addControl(overlay);
 
     map.on("load", () => setReady(true));
     map.on("zoom", () => setZoom(map.getZoom()));
+    let viewFrame = 0;
+    map.on("move", () => {
+      if (viewFrame) return;
+      viewFrame = requestAnimationFrame(() => {
+        viewFrame = 0;
+        setView({ pitch: map.getPitch(), bearing: map.getBearing() });
+      });
+    });
+    // Frames can be skipped while a tab is in the background; settle exactly.
+    map.on("moveend", () => setView({ pitch: map.getPitch(), bearing: map.getBearing() }));
+
+    // A street tile failure before any tile has loaded means the service is
+    // unreachable, so fall back to the offline basemap. A later one-off tile
+    // error just leaves a gap and is not worth abandoning the view over.
+    map.on("sourcedata", (e) => {
+      if (e.sourceId === STREETS_SOURCE_ID && e.tile) streetsLoadedOnce.current = true;
+    });
+    map.on("error", (e) => {
+      const sourceId = (e as unknown as { sourceId?: string }).sourceId;
+      if (sourceId === STREETS_SOURCE_ID && !streetsLoadedOnce.current) {
+        setStreetsFailed(true);
+        setStreetLayersVisible(map, false);
+      }
+    });
 
     return () => {
       overlayRef.current = null;
@@ -185,9 +266,13 @@ export function AtlasMap() {
       if (!index) return;
       const hex = index.at(e.lngLat.lat, e.lngLat.lng);
       setHover(hex ? { hex, x: e.point.x, y: e.point.y } : null);
+      setCursor({ lat: e.lngLat.lat, lng: e.lngLat.lng });
     };
 
-    const onLeave = () => setHover(null);
+    const onLeave = () => {
+      setHover(null);
+      setCursor(null);
+    };
 
     map.on("click", onClick);
     map.on("mousemove", onMove);
@@ -220,6 +305,9 @@ export function AtlasMap() {
     const map = mapRef.current;
     if (!map || !ready || !index || flownIn.current) return;
     flownIn.current = true;
+    // Someone already took the camera to 3D before the grid finished loading;
+    // the statewide fly-in would only drag it back.
+    if (mode3dRef.current) return;
     if (prefersReducedMotion()) {
       map.jumpTo({ center: [-71.4, 42.25], zoom: 7.9, pitch: 0 });
       return;
@@ -237,16 +325,73 @@ export function AtlasMap() {
     });
   }, [ready, index]);
 
+  /* ------------------------------------------------------ 3D street view */
+  // Switching to 3D adds the street tiles and buildings (once), shows them
+  // and tilts the camera toward something worth seeing:
+  // the selected cell, the area already in view, or downtown Boston. Switching
+  // back hides them and returns to a plan view. Selection, tooltips and
+  // overlays work from lng/lat and the H3 index, so tilt does not affect them.
+  React.useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    if (prevMode3d.current === layers.mode3d) return; // not on first load
+    prevMode3d.current = layers.mode3d;
+    const reduce = prefersReducedMotion();
+
+    if (layers.mode3d) {
+      if (!streetsFailed) {
+        try {
+          ensureStreetLayers(map);
+          setStreetLayersVisible(map, true);
+          setStreetsAdded(true);
+        } catch {
+          setStreetsFailed(true);
+        }
+      }
+      const sel = selectedRef.current;
+      const z = map.getZoom();
+      const target =
+        sel
+          ? { center: [sel.lng, sel.lat] as LngLat, zoom: Math.max(z, 15.4) }
+          : z >= 10
+            ? { center: map.getCenter().toArray() as LngLat, zoom: Math.max(z, 15) }
+            : BOSTON_3D;
+      const view = { ...target, pitch: PITCH_3D, bearing: BEARING_3D };
+      if (reduce) map.jumpTo(view);
+      else map.flyTo({ ...view, duration: 1400, essential: true });
+      return;
+    }
+
+    setStreetLayersVisible(map, false);
+    const flat = { pitch: 0, bearing: 0 };
+    if (reduce) map.jumpTo(flat);
+    else map.easeTo({ ...flat, duration: 520, essential: true });
+  }, [layers.mode3d, ready, streetsFailed]);
+
   /* ----------------------------------------------------- camera requests */
+  // Declared after the 3D effect on purpose. When one action both leaves 3D and
+  // asks for a view (reset to statewide), this runs last, so its camera wins.
   React.useEffect(() => {
     const map = mapRef.current;
     if (!map || !ready || !camera) return;
     const reduce = prefersReducedMotion();
+    // In 3D, selections land close enough to see the buildings around the cell.
+    const requested = camera.zoom ?? map.getZoom();
     map.easeTo({
       center: [camera.lng, camera.lat],
-      zoom: camera.zoom ?? map.getZoom(),
-      pitch: 0,
-      bearing: 0,
+      zoom: mode3dRef.current ? Math.max(requested, 15.2) : requested,
+      // Selections level the camera in 2D; 3D keeps its tilt. An explicit
+      // request (reset to statewide) always wins.
+      ...(camera.pitch !== undefined
+        ? { pitch: camera.pitch }
+        : mode3dRef.current
+          ? {}
+          : { pitch: 0 }),
+      ...(camera.bearing !== undefined
+        ? { bearing: camera.bearing }
+        : mode3dRef.current
+          ? {}
+          : { bearing: 0 }),
       duration: reduce ? 0 : 520,
       essential: true,
     });
@@ -305,11 +450,19 @@ export function AtlasMap() {
   const deckLayers = React.useMemo(() => {
     const out: unknown[] = [];
 
+    // With street tiles showing, ground-level layers go beneath the roads and
+    // 3D layers beneath the labels, so the map reads like a map and names stay
+    // legible. `beforeId` is the interleaved overlay's slot in MapLibre's stack.
+    const ground = osmStreets ? { beforeId: STREETS_GROUND_BEFORE } : {};
+    const belowLabels = osmStreets ? { beforeId: STREETS_LABEL_BEFORE } : {};
+
     /* --- basemap, drawn from local MassGIS geometry --------------------- */
-    if (towns.data) {
+    // Replaced by the street tiles in 3D; kept as the fallback if they fail.
+    if (towns.data && !osmStreets) {
       out.push(
         new GeoJsonLayer({
           id: "basemap-land",
+          ...FLAT,
           data: towns.data,
           stroked: true,
           filled: true,
@@ -326,6 +479,8 @@ export function AtlasMap() {
       out.push(
         new GeoJsonLayer({
           id: "flood",
+          ...FLAT,
+          ...ground,
           data: flood.data,
           stroked: true,
           filled: true,
@@ -341,6 +496,8 @@ export function AtlasMap() {
       out.push(
         new GeoJsonLayer({
           id: "protected",
+          ...FLAT,
+          ...ground,
           data: protectedLand.data,
           stroked: true,
           filled: true,
@@ -356,6 +513,8 @@ export function AtlasMap() {
       out.push(
         new GeoJsonLayer({
           id: "ej",
+          ...FLAT,
+          ...ground,
           data: ej.data,
           stroked: true,
           filled: true,
@@ -371,37 +530,56 @@ export function AtlasMap() {
       out.push(
         new H3HexagonLayer({
           id: "suitability",
+          // Flat, it is a ground tint beneath the roads; extruded, it stands with
+          // the buildings and is depth-tested against them.
+          ...(layers.extrude ? belowLabels : { ...ground, ...FLAT }),
           data: scored,
           pickable: false,
           highPrecision: false,
           extruded: layers.extrude,
-          elevationScale: 26,
-          coverage: 0.94,
+          // Among real buildings, columns are kept to building scale (≤150 m)
+          // rather than the kilometre-tall statewide presentation.
+          elevationScale: osmStreets ? 1.5 : 26,
+          // Seamless at state zoom so the grid reads as one surface, with fine
+          // gaps once individual cells are worth telling apart.
+          coverage: zoom < 10 ? 1 : 0.94,
+          material: {
+            ambient: 0.6,
+            diffuse: 0.55,
+            shininess: 24,
+            specularColor: [40, 52, 62],
+          },
           getHexagon: (d: HexRecord) => d.h3,
           getFillColor: (d: HexRecord) => {
             const r = scoreFor(d);
             const [cr, cg, cb] = colorForScore(r.score, r.excluded);
-            return [cr, cg, cb, r.excluded ? 52 : layers.extrude ? 190 : 104];
+            if (r.excluded) return [cr, cg, cb, osmStreets ? 44 : 52];
+            return [cr, cg, cb, layers.extrude ? 205 : osmStreets ? 86 : 104];
           },
           getElevation: (d: HexRecord) => {
             const r = scoreFor(d);
-            return r.excluded ? 0 : (r.score ?? 0) * 10;
+            // Fatal flaws stay flat (ATLAS.md: an exclusion scores exactly 0).
+            if (r.excluded || r.score === null) return 0;
+            // A gentle power curve spreads the top of the range so strong sites
+            // stand clearly above workable ones instead of a near-linear ramp.
+            return Math.pow(r.score / 10, 1.35) * 100;
           },
           updateTriggers: {
-            getFillColor: [mw, lens, cooling, layers.extrude],
+            getFillColor: [mw, lens, cooling, layers.extrude, osmStreets],
             getElevation: [mw, lens, cooling],
           },
         }),
       );
     }
 
-    if (openWater.length) {
+    if (openWater.length && !osmStreets) {
       // The local hydrography polygons show detailed shorelines. This H3 layer
       // also covers cells classified as open water by the land-cover and
       // exclusion screens, including offshore cells with no land-cover record.
       out.push(
         new H3HexagonLayer({
           id: "open-water-cells",
+          ...FLAT,
           data: openWater,
           pickable: false,
           highPrecision: false,
@@ -413,12 +591,13 @@ export function AtlasMap() {
       );
     }
 
-    if (water.data) {
+    if (water.data && !osmStreets) {
       // Redraw water above the score grid. Water cells remain hoverable because
       // pointer lookup uses H3 coordinates rather than deck.gl picking.
       out.push(
         new GeoJsonLayer({
           id: "water-detail",
+          ...FLAT,
           data: water.data,
           stroked: true,
           filled: true,
@@ -431,10 +610,12 @@ export function AtlasMap() {
       );
     }
 
-    if (layers.streets) {
+    // In 3D the OpenStreetMap roads replace this layer (the legend says so).
+    if (layers.streets && !osmStreets) {
       out.push(
         new MVTLayer({
           id: "massgis-streets",
+          ...FLAT,
           data: STREET_TILES,
           minZoom: 8,
           maxZoom: 20,
@@ -456,6 +637,8 @@ export function AtlasMap() {
       out.push(
         new GeoJsonLayer({
           id: "town-boundaries",
+          ...FLAT,
+          ...ground,
           data: towns.data,
           stroked: true,
           filled: false,
@@ -471,6 +654,8 @@ export function AtlasMap() {
       out.push(
         new GeoJsonLayer({
           id: "ma-boundary",
+          ...FLAT,
+          ...ground,
           data: boundary.data,
           stroked: true,
           filled: false,
@@ -485,6 +670,8 @@ export function AtlasMap() {
       out.push(
         new GeoJsonLayer({
           id: "transmission",
+          ...FLAT,
+          ...belowLabels,
           data: transmission.data,
           stroked: true,
           filled: false,
@@ -514,6 +701,8 @@ export function AtlasMap() {
       out.push(
         new GeoJsonLayer({
           id: "town-hover",
+          ...FLAT,
+          ...belowLabels,
           data: [hoverTown.feature],
           stroked: true,
           filled: true,
@@ -532,6 +721,8 @@ export function AtlasMap() {
       out.push(
         new PolygonLayer({
           id: "hovered-cell",
+          ...FLAT,
+          ...belowLabels,
           data: [{ polygon: ring }],
           stroked: true,
           filled: true,
@@ -557,11 +748,13 @@ export function AtlasMap() {
     };
 
     /* Statewide: county names give regional orientation. Local: town names.
-       Never both, so the map stays quiet. */
-    if (zoom < TOWN_LABEL_ZOOM && townLookup.countyLabels.length) {
+       Never both, so the map stays quiet. The 3D view's street tiles carry
+       their own place and water names, so these step aside while it shows. */
+    if (zoom < TOWN_LABEL_ZOOM && townLookup.countyLabels.length && !osmStreets) {
       out.push(
         new TextLayer<{ name: string; position: ElevatedLngLat }>({
           id: "county-labels",
+          ...FLAT,
           data: townLookup.countyLabels,
           getPosition: (d) => d.position,
           getText: (d) => d.name,
@@ -573,7 +766,7 @@ export function AtlasMap() {
       );
     }
 
-    if (towns.data && zoom >= TOWN_LABEL_ZOOM) {
+    if (towns.data && zoom >= TOWN_LABEL_ZOOM && !osmStreets) {
       const labels = (towns.data.features as Feature[])
         .map((f) => ({
           key: ((f.properties?.town as string) ?? "").toUpperCase(),
@@ -592,6 +785,7 @@ export function AtlasMap() {
           position: ElevatedLngLat;
         }>({
           id: "town-labels",
+          ...FLAT,
           data: labels,
           getPosition: (d) => d.position,
           getText: (d) => d.name,
@@ -612,10 +806,11 @@ export function AtlasMap() {
       );
     }
 
-    if (zoom >= WATER_LABEL_ZOOM && townLookup.waterLabels.length) {
+    if (zoom >= WATER_LABEL_ZOOM && townLookup.waterLabels.length && !osmStreets) {
       out.push(
         new TextLayer<{ name: string; position: ElevatedLngLat }>({
           id: "water-labels",
+          ...FLAT,
           data: townLookup.waterLabels,
           getPosition: (d) => d.position,
           getText: (d) => d.name,
@@ -667,6 +862,7 @@ export function AtlasMap() {
       out.push(
         new PathLayer<{ path: LngLat[] }>({
           id: "context-ring",
+          ...FLAT,
           data: [{ path: circle }],
           getPath: (d) => d.path,
           getColor: [156, 170, 182, 150],
@@ -697,72 +893,106 @@ export function AtlasMap() {
     lens,
     cooling,
     scoreFor,
+    osmStreets,
   ]);
 
   React.useEffect(() => {
-    overlayRef.current?.setProps({ layers: deckLayers as never });
+    const overlay = overlayRef.current;
+    const map = mapRef.current;
+    overlay?.setProps({ layers: deckLayers as never });
+    // The interleaved overlay can only slot its layer groups into MapLibre's
+    // stack while the style is fully loaded. Right after the street tiles are
+    // added it is not, so place them again once the map has settled.
+    if (!overlay || !map || map.isStyleLoaded()) return;
+    const resync = () => overlay.setProps({ layers: [...deckLayers] as never });
+    map.once("idle", resync);
+    return () => {
+      map.off("idle", resync);
+    };
   }, [deckLayers]);
 
   return (
-    <div className="relative min-w-0 flex-1">
-      {/* Sized explicitly rather than with `absolute inset-0`: maplibre adds a
-          `.maplibregl-map { position: relative }` rule to this node, which wins
-          over the utility class and would leave the container zero-height. */}
-      <div
-        ref={container}
-        className="h-full w-full"
-        aria-label="Massachusetts screening map"
-      />
+    <div className="flex min-w-0 flex-1 flex-col">
+      <div className="relative min-h-0 flex-1">
+        {/* Sized explicitly rather than with `absolute inset-0`: maplibre adds a
+            `.maplibregl-map { position: relative }` rule to this node, which wins
+            over the utility class and would leave the container zero-height. */}
+        <div
+          ref={container}
+          className="h-full w-full"
+          aria-label="Massachusetts screening map"
+        />
 
-      {ready && index && (
-        <LocationReadout
-          {...(hover
-            ? {
-                context: "Under cursor",
-                town: lookupTown(townLookup.byName, hover.hex.town),
-              }
-            : selected
+        {ready && index && (
+          <LocationReadout
+            {...(hover
               ? {
-                  context: "Selected site",
-                  town: lookupTown(townLookup.byName, selected.town),
+                  context: "Under cursor",
+                  town: lookupTown(townLookup.byName, hover.hex.town),
                 }
-              : zoom < STATEWIDE_ZOOM
-                ? { context: "Statewide view", town: null, statewide: true }
-                : {
-                    context: "Map centre",
-                    town: lookupTown(townLookup.byName, centerTown ?? null),
-                  })}
-        />
-      )}
+              : selected
+                ? {
+                    context: "Selected site",
+                    town: lookupTown(townLookup.byName, selected.town),
+                  }
+                : zoom < STATEWIDE_ZOOM
+                  ? { context: "Statewide view", town: null, statewide: true }
+                  : {
+                      context: "Map centre",
+                      town: lookupTown(townLookup.byName, centerTown ?? null),
+                    })}
+          />
+        )}
 
-      {hover && (
-        <HexTooltip
-          hex={hover.hex}
-          x={hover.x}
-          y={hover.y}
-          county={
-            hover.hex.town
-              ? (townLookup.byName.get(hover.hex.town)?.county ?? null)
-              : null
-          }
-        />
-      )}
+        {hover && (
+          <HexTooltip
+            hex={hover.hex}
+            x={hover.x}
+            y={hover.y}
+            county={
+              hover.hex.town
+                ? (townLookup.byName.get(hover.hex.town)?.county ?? null)
+                : null
+            }
+          />
+        )}
 
-      <MapLegend
-        basemapFailed={Boolean(towns.error || water.error || boundary.error)}
-        overlayState={{
-          transmission: transmission,
-          ej,
-          protected: protectedLand,
-          flood,
-        }}
+        {osmStreets && zoom < BUILDINGS_MIN_ZOOM && (
+          <div
+            role="status"
+            className="pointer-events-none absolute left-1/2 top-3 z-10 -translate-x-1/2 rounded-[6px] border border-line bg-panel/95 px-2.5 py-1 text-[11px] text-muted"
+          >
+            Zoom in to see buildings
+          </div>
+        )}
+
+        <MapLegend
+          basemapFailed={Boolean(towns.error || water.error || boundary.error)}
+          streetsFailed={layers.mode3d && streetsFailed}
+          streets3dActive={osmStreets}
+          overlayState={{
+            transmission: transmission,
+            ej,
+            protected: protectedLand,
+            flood,
+          }}
+        />
+
+        {(loading || !ready) && (
+          <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[8px] border border-line bg-panel/95 px-4 py-3 text-[12px] text-muted">
+            Loading the statewide screening grid…
+          </div>
+        )}
+      </div>
+
+      <MapStatusBar
+        mode={layers.mode3d ? (streetsFailed ? "3d-offline" : "3d") : "2d"}
+        cursor={cursor}
+        hoverHex={hover?.hex ?? null}
+        zoom={zoom}
+        pitch={view.pitch}
+        bearing={view.bearing}
       />
-
-      {(loading || !ready) && (
-        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[8px] border border-line bg-panel/95 px-4 py-3 text-[12px] text-muted">
-          Loading the statewide screening grid…
-        </div>
-      )}
     </div>
   );
 }
