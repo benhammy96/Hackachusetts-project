@@ -1,0 +1,382 @@
+{
+  "generated_at": "2026-10-24T19:27:10+00:00",
+  "h3_resolution": 8,
+  "hex_count": 36055,
+  "hex_area_km2": 0.7419,
+  "projection": "EPSG:26986 (NAD83 / Massachusetts Mainland) for all distances",
+  "excluded_count": 19662,
+  "sources": {
+    "tiger_state": {
+      "name": "Census TIGERweb \u2014 State boundary (MA, FIPS 25)",
+      "publisher": "US Census Bureau",
+      "url": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/0",
+      "landing_page": "https://tigerweb.geo.census.gov/tigerwebmain/TIGERweb_restmapservice.html",
+      "vintage": "TIGERweb current",
+      "license": "US Government work, public domain",
+      "status": "verified"
+    },
+    "massgis_hydro": {
+      "name": "MassGIS Major Hydrography (lakes and ponds)",
+      "publisher": "MassGIS",
+      "url": "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/Hydro_Major/MapServer/2",
+      "landing_page": "https://www.mass.gov/info-details/massgis-data-major-ponds-and-major-streams",
+      "vintage": "MassGIS current",
+      "license": "MassGIS open data",
+      "status": "verified",
+      "caveat": "Used only to draw the basemap, not in any score."
+    },
+    "massgis_towns": {
+      "name": "MassGIS Census 2020 Towns",
+      "publisher": "MassGIS (Bureau of Geographic Information)",
+      "url": "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/Census2020_Towns/MapServer/2",
+      "landing_page": "https://www.mass.gov/info-details/massgis-data-municipalities",
+      "vintage": "Census 2020",
+      "license": "MassGIS open data",
+      "status": "verified"
+    },
+    "massgis_census_blocks": {
+      "name": "MassGIS Census 2020 Blocks (POP20)",
+      "publisher": "MassGIS / US Census Bureau",
+      "url": "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/Census2020_Base_Geography/MapServer/1",
+      "landing_page": "https://www.mass.gov/info-details/massgis-data-2020-us-census",
+      "vintage": "2020 Decennial Census (PL 94-171)",
+      "license": "MassGIS open data / public domain",
+      "status": "verified",
+      "caveat": "pop_1km sums POP20 for census blocks whose Census-assigned internal point falls within 1 km of the hex centre. Block-level geography keeps the aggregation error small but the result is still an estimate."
+    },
+    "massgis_ej2020": {
+      "name": "MassGIS 2020 US Census Environmental Justice Populations",
+      "publisher": "MassGIS / EEA",
+      "url": "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/EJ2020/MapServer/0",
+      "landing_page": "https://www.mass.gov/info-details/massgis-data-2020-us-census-environmental-justice-populations",
+      "vintage": "2020 Census / 2019 ACS income",
+      "license": "MassGIS open data",
+      "status": "verified",
+      "caveat": "This layer contains only designated EJ block groups, so it answers 'is this an EJ block group' but cannot be used for total population."
+    },
+    "massgis_openspace": {
+      "name": "MassGIS Protected and Recreational OpenSpace",
+      "publisher": "MassGIS / EEA",
+      "url": "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/openspace/MapServer/0",
+      "landing_page": "https://www.mass.gov/info-details/massgis-data-protected-and-recreational-openspace",
+      "vintage": "continuously updated",
+      "license": "MassGIS open data",
+      "status": "verified"
+    },
+    "massdep_wetlands": {
+      "name": "MassDEP Wetlands (DEP Wetland Areas)",
+      "publisher": "Massachusetts Department of Environmental Protection",
+      "url": "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/DEP_Wetlands_FieldMaps/MapServer/1",
+      "landing_page": "https://www.mass.gov/info-details/massgis-data-massdep-wetlands-2005",
+      "vintage": "MassDEP wetlands programme",
+      "license": "MassGIS open data",
+      "status": "verified"
+    },
+    "fema_nfhl": {
+      "name": "FEMA National Flood Hazard Layer (served by MassGIS)",
+      "publisher": "FEMA",
+      "url": "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/FEMA/FEMA_National_Flood_Hazard_Layer/MapServer/0",
+      "landing_page": "https://hazards.fema.gov/nfhl/",
+      "vintage": "NFHL as served by MassGIS",
+      "license": "US Government work, public domain",
+      "status": "verified"
+    },
+    "massdep_zone1": {
+      "name": "MassDEP Approved Zone I (public water supply wells)",
+      "publisher": "MassDEP",
+      "url": "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/Zone1/MapServer/0",
+      "landing_page": "https://www.mass.gov/info-details/massgis-data-massdep-approved-zone-i-areas",
+      "vintage": "MassDEP current",
+      "license": "MassGIS open data",
+      "status": "verified"
+    },
+    "massdep_zonea": {
+      "name": "MassDEP Surface Water Protection Zone A",
+      "publisher": "MassDEP",
+      "url": "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/ZoneABC/MapServer/0",
+      "landing_page": "https://www.mass.gov/info-details/massgis-data-massdep-surface-water-supply-protection-areas",
+      "vintage": "MassDEP current",
+      "license": "MassGIS open data",
+      "status": "verified"
+    },
+    "massdep_zone2": {
+      "name": "MassDEP Approved Wellhead Protection Areas (Zone II) and IWPA",
+      "publisher": "MassDEP",
+      "url": "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/IWPA_Zone2/MapServer",
+      "landing_page": "https://www.mass.gov/info-details/massgis-data-massdep-approved-wellhead-protection-areas-zone-ii",
+      "vintage": "MassDEP current",
+      "license": "MassGIS open data",
+      "status": "verified"
+    },
+    "massgis_lclu2016": {
+      "name": "MassGIS 2016 Land Cover / Land Use",
+      "publisher": "MassGIS / EEA",
+      "url": "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/LandCoverLandUse2016/MapServer/0",
+      "landing_page": "https://www.mass.gov/info-details/massgis-data-2016-land-coverland-use",
+      "vintage": "2016",
+      "license": "MassGIS open data",
+      "status": "verified"
+    },
+    "massgis_sw_supply": {
+      "name": "MassGIS Surface Water Supply Watersheds",
+      "publisher": "MassDEP / MassGIS",
+      "url": "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/Surface_Water_Supply_Watersheds/MapServer/0",
+      "landing_page": "https://www.mass.gov/info-details/massgis-data-massdep-surface-water-supply-protection-areas",
+      "vintage": "MassDEP current",
+      "license": "MassGIS open data",
+      "status": "verified"
+    },
+    "massgis_schools": {
+      "name": "MassGIS Schools (PK-12)",
+      "publisher": "MassGIS / DESE",
+      "url": "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/Schools_PK12/MapServer",
+      "landing_page": "https://www.mass.gov/info-details/massgis-data-schools-pk-12",
+      "vintage": "DESE current",
+      "license": "MassGIS open data",
+      "status": "verified"
+    },
+    "massgis_hospitals": {
+      "name": "MassGIS Hospitals",
+      "publisher": "MassGIS / DPH",
+      "url": "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/Hospitals/MapServer/0",
+      "landing_page": "https://www.mass.gov/info-details/massgis-data-acute-care-hospitals",
+      "vintage": "DPH current",
+      "license": "MassGIS open data",
+      "status": "verified"
+    },
+    "massgis_highways": {
+      "name": "MassGIS Major Highways",
+      "publisher": "MassGIS / MassDOT",
+      "url": "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/MajorHighways/MapServer/0",
+      "landing_page": "https://www.mass.gov/info-details/massgis-data-massdot-roads",
+      "vintage": "MassDOT current",
+      "license": "MassGIS open data",
+      "status": "verified"
+    },
+    "massgis_elec_providers": {
+      "name": "MassGIS Electricity Providers by Town",
+      "publisher": "MassGIS / DOER",
+      "url": "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/ElectricityProviders/MapServer/0",
+      "landing_page": "https://www.mass.gov/info-details/massgis-data-public-utility-service-providers",
+      "vintage": "DOER current",
+      "license": "MassGIS open data",
+      "status": "verified"
+    },
+    "massgis_aul": {
+      "name": "MassDEP Activity and Use Limitation (AUL) sites",
+      "publisher": "MassDEP",
+      "url": "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/AUL_Sites/MapServer/0",
+      "landing_page": "https://www.mass.gov/info-details/massgis-data-massdep-activity-and-use-limitation-aul-sites",
+      "vintage": "MassDEP current",
+      "license": "MassGIS open data",
+      "status": "verified"
+    },
+    "czm_slr": {
+      "name": "NOAA / MA CZM Sea Level Rise inundation extents",
+      "publisher": "NOAA Office for Coastal Management / MA CZM",
+      "url": "https://arcgisserver.digital.mass.gov/arcgisserver/rest/services/AGOL/CZM_NOAA_SLR_Data_Combined/MapServer/0",
+      "landing_page": "https://coast.noaa.gov/slrdata/",
+      "vintage": "NOAA SLR viewer data",
+      "license": "US Government work, public domain",
+      "status": "verified"
+    },
+    "osm_power_lines": {
+      "name": "OpenStreetMap power=line ways with a voltage tag",
+      "publisher": "OpenStreetMap contributors (via Overpass API)",
+      "url": "https://overpass-api.de/api/interpreter",
+      "landing_page": "https://wiki.openstreetmap.org/wiki/Tag:power%3Dline",
+      "vintage": "live extract, see fetched_at",
+      "license": "ODbL 1.0",
+      "status": "verified",
+      "caveat": "Crowd-sourced; mapping coverage is incomplete and voltage tags are not audited. Distance to a mapped line is not interconnection capacity."
+    },
+    "osm_power_plants": {
+      "name": "OpenStreetMap non-emitting generation (power=plant / generator)",
+      "publisher": "OpenStreetMap contributors (via Overpass API)",
+      "url": "https://overpass-api.de/api/interpreter",
+      "landing_page": "https://wiki.openstreetmap.org/wiki/Tag:power%3Dplant",
+      "vintage": "live extract, see fetched_at",
+      "license": "ODbL 1.0",
+      "status": "proxy",
+      "caveat": "Proximity to generation is not a clean-energy procurement pathway and does not establish Clean Energy Standard eligibility."
+    }
+  },
+  "fields": {
+    "town": {
+      "source": "massgis_towns",
+      "status": "verified",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "land_class": {
+      "source": "massgis_lclu2016",
+      "status": "verified",
+      "null_count": 11398,
+      "coverage": 0.6839
+    },
+    "land_use_name": {
+      "source": "massgis_lclu2016",
+      "status": "verified",
+      "null_count": 7114,
+      "coverage": 0.8027
+    },
+    "land_cover_name": {
+      "source": "massgis_lclu2016",
+      "status": "verified",
+      "null_count": 7114,
+      "coverage": 0.8027
+    },
+    "d_tx69_km": {
+      "source": "osm_power_lines",
+      "status": "verified",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "d_tx115_km": {
+      "source": "osm_power_lines",
+      "status": "verified",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "d_tx345_km": {
+      "source": "osm_power_lines",
+      "status": "verified",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "d_clean_km": {
+      "source": "osm_power_plants",
+      "status": "proxy",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "d_highway_km": {
+      "source": "massgis_highways",
+      "status": "verified",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "d_fiber_km": {
+      "source": null,
+      "status": "unavailable",
+      "null_count": 36055,
+      "coverage": 0.0
+    },
+    "d_ej_km": {
+      "source": "massgis_ej2020",
+      "status": "verified",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "d_dw_zone2_km": {
+      "source": "massdep_zone2",
+      "status": "verified",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "pop_1km": {
+      "source": "massgis_census_blocks",
+      "status": "modeled",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "developed_frac_1km": {
+      "source": "massgis_lclu2016",
+      "status": "modeled",
+      "null_count": 7195,
+      "coverage": 0.8004
+    },
+    "water_stress": {
+      "source": null,
+      "status": "unavailable",
+      "null_count": 36055,
+      "coverage": 0.0
+    },
+    "mlp_town": {
+      "source": "massgis_elec_providers",
+      "status": "proxy",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "school_or_hospital_500m": {
+      "source": "massgis_schools",
+      "status": "verified",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "in_ej": {
+      "source": "massgis_ej2020",
+      "status": "verified",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "near_ej_1mi": {
+      "source": "massgis_ej2020",
+      "status": "verified",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "in_sw_supply_watershed": {
+      "source": "massgis_sw_supply",
+      "status": "proxy",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "flood_100yr": {
+      "source": "fema_nfhl",
+      "status": "verified",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "flood_500yr": {
+      "source": "fema_nfhl",
+      "status": "verified",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "coastal_slr": {
+      "source": "czm_slr",
+      "status": "verified",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "brownfield": {
+      "source": "massgis_aul",
+      "status": "proxy",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "aul_site_500m": {
+      "source": "massgis_aul",
+      "status": "verified",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "excluded": {
+      "source": null,
+      "status": "modeled",
+      "null_count": 0,
+      "coverage": 1.0
+    },
+    "ej_criteria": {
+      "source": "massgis_ej2020",
+      "status": "verified",
+      "null_count": 31924,
+      "coverage": 0.1146
+    },
+    "exclude_reason": {
+      "source": null,
+      "status": "modeled",
+      "null_count": 16393,
+      "coverage": 0.5453
+    }
+  },
+  "notes": [
+    "Values are raw measurements. Scores are computed in the browser from lib/score.ts.",
+    "d_fiber_km is null: no licensed fiber-route dataset is wired into this build. d_highway_km is published separately and is explicitly NOT a fiber measurement.",
+    "water_stress is null: no WRC stressed-basin or WRI Aqueduct join in this build. in_sw_supply_watershed is used as a documented water-sensitivity proxy instead.",
+    "Distance to a mapped transmission line is not interconnection capacity.",
+    "Polygon intersections are preliminary geospatial screens, not legal determinations.",
+    "Map overlay GeoJSONs are generalised for display; the per-hex flags above come from full-resolution queries."
+  ]
+}

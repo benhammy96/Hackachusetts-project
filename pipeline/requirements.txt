@@ -1,0 +1,13 @@
+# Atlas data pipeline. Only three third-party packages; everything else is stdlib.
+#
+#   python3 -m venv .venv-pipeline
+#   .venv-pipeline/bin/pip install -r pipeline/requirements.txt
+#
+# shapely bundles GEOS in its wheels, so no system GIS install is needed.
+# geopandas is deliberately not used: pipeline/geo.py implements the EPSG:26986
+# projection directly, which keeps the dependency surface small.
+
+h3==4.5.0
+shapely==2.2.0
+requests==2.34.2
+openpyxl==3.1.5

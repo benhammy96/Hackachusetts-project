@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Test the score engine on save",
+      "trigger": "PostFileSave",
+      "description": "Runs the unit, property and calibration suites whenever the scoring engine changes, so a broken invariant is caught immediately.",
+      "matcher": "lib/(score|weights|eo658|economics|alternatives)\\.ts$",
+      "action": {
+        "type": "command",
+        "command": "PATH=\"$PWD/.toolchain/node/bin:$PATH\" npx vitest run 2>&1 | tail -20",
+        "timeout": 180
+      }
+    }
+  ]
+}

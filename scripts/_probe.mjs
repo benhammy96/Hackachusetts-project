@@ -1,0 +1,15 @@
+import { chromium } from "playwright";
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
+const logs = [];
+p.on("console", m => logs.push(`[${m.type()}] ${m.text()}`));
+p.on("pageerror", e => logs.push(`[pageerror] ${e.message}\n${(e.stack||"").split("\n").slice(0,8).join("\n")}`));
+p.on("requestfailed", r => logs.push(`[reqfail] ${r.url().slice(0,110)} ${r.failure()?.errorText}`));
+await p.goto("http://localhost:3312", { waitUntil: "domcontentloaded", timeout: 60000 });
+await p.waitForTimeout(9000);
+console.log("=== logs"); logs.slice(0,22).forEach(l => console.log(l));
+console.log("=== map container:", await p.locator('[aria-label="Massachusetts screening map"]').count());
+console.log("=== canvas:", await p.locator("canvas").count());
+console.log("=== body text");
+console.log((await p.locator("body").innerText()).slice(0, 1400));
+await b.close();

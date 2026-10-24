@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Reconcile scoring.md with weights.ts",
+      "trigger": "PostFileSave",
+      "description": "When the scoring steering file changes, check lib/weights.ts still matches the documented tables and invariants.",
+      "matcher": "\\.kiro/steering/scoring\\.md$",
+      "action": {
+        "type": "agent",
+        "prompt": ".kiro/steering/scoring.md changed. Reconcile lib/weights.ts with it: compare every factor weight, the lens alpha values, the MW preset table (required voltage and population threshold), the land readiness class values, the band thresholds and the bonus amounts and cap. Update lib/weights.ts so the code matches the document, never the reverse. If the document changed a formula rather than a constant, update the matching factor function in lib/score.ts too. Then run `npx vitest run` and report any invariant in scoring.md's invariants list that no longer holds. Do not weaken a test to make it pass."
+      }
+    }
+  ]
+}

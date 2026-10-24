@@ -1,0 +1,80 @@
+{
+  "generated_at": "2026-10-24T18:28:38+00:00",
+  "note": "Measured inputs carry status 'verified' with a publisher and period. Scenario inputs carry status 'assumption' and must be presented as assumptions wherever a derived figure is shown.",
+  "electricity_price": {
+    "value": 0.2003,
+    "unit": "USD/kWh",
+    "label": "Massachusetts average industrial retail price",
+    "period": "August 2026",
+    "status": "verified",
+    "source": "EIA Electric Power Monthly, Table 5.6.A",
+    "source_url": "https://www.eia.gov/electricity/monthly/",
+    "file_url": "https://www.eia.gov/electricity/monthly/xls/table_5_06_a.xlsx",
+    "caveat": "A statewide sector average. A large load would negotiate a tariff or contract; this is not a project quote, and Massachusetts is creating large-load rate schedules that do not exist here."
+  },
+  "grid_carbon": {
+    "value": 246.38,
+    "unit": "kg CO2e/MWh",
+    "label": "eGRID NEWE subregion total output CO2e rate",
+    "status": "verified",
+    "source": "EPA eGRID2023 Summary Tables, Table 1 (subregion output emission rates)",
+    "source_url": "https://www.epa.gov/egrid/summary-data",
+    "file_url": "https://www.epa.gov/system/files/documents/2025-06/summary_tables_rev2.xlsx",
+    "alternatives": {
+      "subregion_lb_per_mwh": 543.178,
+      "state_MA_lb_per_mwh": 830.101,
+      "state_MA_kg_per_mwh": 376.53
+    },
+    "caveat": "An annual average output rate for the whole subregion. It is not a marginal emission rate, and it is not market-based Scope 2 accounting."
+  },
+  "scenario": {
+    "pue": {
+      "value": 1.3,
+      "range": [
+        1.15,
+        1.5
+      ],
+      "unit": "ratio",
+      "label": "Power usage effectiveness",
+      "status": "assumption",
+      "source": "Atlas scenario input \u2014 adjust in the cost panel",
+      "caveat": "PUE is a scenario input, not a measurement of any facility. The low end reflects a well-run new build and the high end an average operating site."
+    },
+    "wue": {
+      "value": 1.8,
+      "range": [
+        0.0,
+        3.5
+      ],
+      "unit": "L/kWh of facility energy",
+      "label": "Water usage effectiveness",
+      "status": "assumption",
+      "source": "Atlas scenario input \u2014 adjust in the cost panel",
+      "caveat": "WUE is a scenario input with a declared denominator of total facility energy. Closed-loop and air-cooled designs approach zero on-site evaporative water use; the default describes an evaporative design."
+    },
+    "utilisation_hours": {
+      "value": 8760,
+      "range": [
+        6000,
+        8760
+      ],
+      "unit": "hours/year",
+      "label": "Operating hours at full IT load",
+      "status": "assumption",
+      "source": "Atlas scenario input",
+      "caveat": "8,760 hours assumes continuous full utilisation, which overstates a real ramp-up year. IT_MW refers to IT load, not total site demand."
+    },
+    "construction_usd_per_mw": {
+      "value": 10000000,
+      "range": [
+        7000000,
+        15000000
+      ],
+      "unit": "USD per MW of IT capacity",
+      "label": "Illustrative construction cost",
+      "status": "assumption",
+      "source": "Atlas scenario input \u2014 replace with a project estimate",
+      "caveat": "A placeholder order of magnitude for comparing sites, not a cost estimate for any project. Land, interconnection and site works are excluded."
+    }
+  }
+}

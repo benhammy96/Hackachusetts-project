@@ -1,0 +1,13 @@
+node_modules/
+.next/
+out/
+.toolchain/
+.venv-pipeline/
+pipeline/.cache/
+pipeline/__pycache__/
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+.env
+.env.local
+.vercel

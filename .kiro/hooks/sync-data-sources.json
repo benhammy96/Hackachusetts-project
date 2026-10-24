@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Update data-sources.md after a pipeline change",
+      "trigger": "PostFileSave",
+      "description": "Keeps the data-sources steering file and the provenance registry in step with the pipeline.",
+      "matcher": "pipeline/.*\\.py$",
+      "action": {
+        "type": "agent",
+        "prompt": "A pipeline file changed. Check whether it added, removed or renamed any field written to public/data/hexes.json. For every change:\n\n1. Add or update the entry in pipeline/sources.py — both SOURCES (name, publisher, url, landing_page, vintage, license, status, caveat) and FIELD_SOURCES (source id plus verified/modeled/proxy/unavailable).\n2. Add the field to the table in .kiro/steering/data-sources.md with its source, status and caveat.\n3. Add the field to HexRecord in lib/types.ts and to the decoder in lib/hexes.ts.\n4. Confirm the field is never given a favourable default when the source has no value.\n\nThen run `npx vitest run`; the calibration test asserts every field with data names a verified source. Report what you changed."
+      }
+    }
+  ]
+}

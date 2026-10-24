@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Review a new component against design.md",
+      "trigger": "PostFileCreate",
+      "description": "Reviews a new component against the design tokens and the honesty rules in design.md before it spreads.",
+      "matcher": "components/.*\\.tsx$",
+      "action": {
+        "type": "agent",
+        "prompt": "A new file was created in components/. Review it against .kiro/steering/design.md and UI_DESIGN.md and report concrete violations:\n\n1. Tokens only: no literal hex colours, no radius outside 6/8/10 px, no font size outside the documented scale, spacing on the 4 px base.\n2. Honesty: every figure has a unit; anything that is not a direct measurement carries a StatusTag; missing data reads \"Not available\" and never 0; a risk flag or unresolved constraint is never hidden behind a good score.\n3. Language: \"near transmission\" is never \"grid capacity available\"; \"vacant\" is never \"for sale\"; a low band is never described as predicted opposition.\n4. Accessibility: keyboard reachable, visible accent focus ring, aria-expanded on disclosures, aria-pressed on chips, real table semantics with scope, colour never the only signal.\n5. Anti-template: no gradients, glow, emoji, repeated KPI cards, arbitrary animation, or dead buttons; reduced motion honoured.\n\nList each violation with the line and the fix. If the file is clean, say so in one line."
+      }
+    }
+  ]
+}
