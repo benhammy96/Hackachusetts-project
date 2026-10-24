@@ -77,7 +77,7 @@ export function SegmentedControl<T extends string | number>({
             title={o.hint}
             onClick={() => onChange(o.value)}
             className={cn(
-              "h-7 rounded-[4px] px-2.5 text-[12px] font-medium transition-colors duration-100",
+              "h-7 whitespace-nowrap rounded-[4px] px-2.5 text-[12px] font-medium transition-colors duration-100",
               active
                 ? "bg-accent-muted text-accent"
                 : "text-muted hover:bg-raised hover:text-fg",
@@ -260,6 +260,71 @@ export function Toggle({
       <span className="min-w-0 flex-1 truncate text-[12px] text-fg">{label}</span>
       {detail && <span className="overline shrink-0">{detail}</span>}
     </label>
+  );
+}
+
+/* -------------------------------------------------------------------- Kbd */
+
+/** A keyboard key, for shortcut hints. `mod` renders as ⌘ on Apple, Ctrl elsewhere. */
+export function Kbd({ children, className }: { children: React.ReactNode; className?: string }) {
+  const mod = useModKey();
+  return (
+    <kbd
+      className={cn(
+        "num inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[6px] border border-line bg-raised px-1",
+        "text-[10px] font-medium leading-none text-muted",
+        className,
+      )}
+    >
+      {children === "mod" ? mod : children}
+    </kbd>
+  );
+}
+
+export function KeyCombo({ keys, className }: { keys: string[]; className?: string }) {
+  return (
+    <span className={cn("inline-flex items-center gap-0.5", className)}>
+      {keys.map((k) => (
+        <Kbd key={k}>{k}</Kbd>
+      ))}
+    </span>
+  );
+}
+
+/** "⌘" on Apple platforms, "Ctrl" elsewhere. Resolved after mount to keep SSR stable. */
+export function useModKey(): string {
+  const [mod, setMod] = React.useState("⌘");
+  React.useEffect(() => {
+    if (!/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)) setMod("Ctrl");
+  }, []);
+  return mod;
+}
+
+/* ------------------------------------------------------------------- Flag */
+
+/** Compact textual state indicator for dense tables. Never colour alone. */
+export function Flag({
+  tone = "neutral",
+  title,
+  children,
+}: {
+  tone?: "neutral" | "warn" | "bad" | "ok";
+  title?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <span
+      title={title}
+      className={cn(
+        "num inline-flex h-4 shrink-0 items-center rounded-[6px] border px-1 text-[10px] font-medium leading-none",
+        tone === "warn" && "border-warn/40 text-warn",
+        tone === "bad" && "border-bad/40 text-bad",
+        tone === "ok" && "border-ok/40 text-ok",
+        tone === "neutral" && "border-line text-subtle",
+      )}
+    >
+      {children}
+    </span>
   );
 }
 
