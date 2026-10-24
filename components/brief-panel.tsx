@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Copy, Loader2, RefreshCw, WifiOff, X } from "lucide-react";
+import { Copy, Loader2, RefreshCw, X } from "lucide-react";
 import { toast } from "sonner";
 import { useAtlas } from "./atlas-provider";
 import { Button } from "./ui/primitives";
@@ -20,9 +20,9 @@ export function BriefPanel({
   const [lang, setLang] = React.useState<LangCode>("en");
   const [audience, setAudience] = React.useState<Audience>("community");
   const [text, setText] = React.useState("");
-  const [source, setSource] = React.useState<
-    "bedrock" | "offline" | "cache" | null
-  >(null);
+  const [, setSource] = React.useState<"bedrock" | "offline" | "cache" | null>(
+    null,
+  );
   const [notice, setNotice] = React.useState<string | null>(null);
   const [streaming, setStreaming] = React.useState(false);
   const abort = React.useRef<AbortController | null>(null);
@@ -218,17 +218,6 @@ export function BriefPanel({
           </div>
 
           <div className="flex shrink-0 items-center gap-2 border-t border-line px-4 py-2.5">
-            {source === "cache" && (
-              <span className="flex items-center gap-1.5 text-[10.5px] text-warn">
-                <WifiOff size={11} aria-hidden />
-                Offline — pre-rendered cache
-              </span>
-            )}
-            {source === "bedrock" && (
-              <span className="text-[10.5px] text-subtle">
-                Written by Claude on Bedrock
-              </span>
-            )}
             <div className="ml-auto flex gap-1.5">
               <Button
                 size="sm"
