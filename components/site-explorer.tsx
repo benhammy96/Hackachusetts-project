@@ -110,22 +110,27 @@ export function SiteExplorer() {
           aria-expanded={showFilters}
           className="flex w-full items-center justify-between px-2.5 py-2 text-left"
         >
-          <span className="overline flex items-center gap-1.5">
+          <span className="eyebrow flex items-center gap-1.5">
             <SlidersHorizontal size={11} aria-hidden /> Filters
-            {activeFilters > 0 && <span className="num text-accent">{activeFilters}</span>}
+            {activeFilters > 0 && (
+              <span className="num text-accent">{activeFilters}</span>
+            )}
           </span>
-          <span className="text-[11px] text-subtle">{showFilters ? "Hide" : "Show"}</span>
+          <span className="text-[11px] text-subtle">
+            {showFilters ? "Hide" : "Show"}
+          </span>
         </button>
 
         {showFilters && (
           <div className="px-2.5 pb-2.5">
             <div className="mb-1 flex items-center gap-1.5">
-              <span className="overline">Land class, 2016</span>
+              <span className="eyebrow">Land class, 2016</span>
               <InfoDot
                 content={
                   <>
-                    MassGIS 2016 Land Cover / Land Use at the cell centre. Land class says
-                    nothing about zoning or whether the land is available.
+                    MassGIS 2016 Land Cover / Land Use at the cell centre. Land
+                    class says nothing about zoning or whether the land is
+                    available.
                   </>
                 }
               />
@@ -164,8 +169,8 @@ export function SiteExplorer() {
             </div>
             {filters.excludeEj && (
               <p className="px-1.5 pb-1 text-[10px] leading-snug text-warn/80">
-                Filtering EJ areas out of a search is not the same as addressing them. The
-                order itself requires a community benefits agreement.
+                Filtering EJ areas out of a search is not the same as addressing
+                them. The order itself requires a community benefits agreement.
               </p>
             )}
 
@@ -197,7 +202,7 @@ export function SiteExplorer() {
       {/* Ranked results */}
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="flex shrink-0 items-baseline justify-between px-2.5 py-2">
-          <span className="overline">Ranked cells</span>
+          <span className="eyebrow">Ranked cells</span>
           <span className="num text-[10px] text-subtle">
             {loading ? "—" : `top ${ranked.length}`}
           </span>
@@ -214,8 +219,11 @@ export function SiteExplorer() {
           {!loading && ranked.length === 0 && (
             <li className="px-2.5 py-4 text-[11.5px] leading-snug text-subtle">
               No cell matches these filters. Hard exclusions remove{" "}
-              {index ? index.all.filter((h) => h.excluded).length.toLocaleString() : "—"} of{" "}
-              {index ? index.size.toLocaleString() : "—"} cells before ranking starts.
+              {index
+                ? index.all.filter((h) => h.excluded).length.toLocaleString()
+                : "—"}{" "}
+              of {index ? index.size.toLocaleString() : "—"} cells before
+              ranking starts.
             </li>
           )}
 
@@ -227,7 +235,7 @@ export function SiteExplorer() {
                   <button
                     onClick={() => {
                       select(row.hex.h3);
-                      flyTo(row.hex.lat, row.hex.lng, 12);
+                      flyTo(row.hex.lat, row.hex.lng, 14.5);
                     }}
                     className={`mb-px w-full rounded-[6px] px-2 py-1.5 text-left transition-colors ${
                       isSel ? "bg-accent-muted" : "hover:bg-raised"
@@ -266,8 +274,8 @@ export function SiteExplorer() {
         </ul>
 
         <p className="shrink-0 border-t border-line px-2.5 py-2 text-[10px] leading-snug text-subtle">
-          Ranking covers screening cells, not parcels or listings. Every cell shown still has
-          unverified grid capacity and unknown zoning.
+          Ranking covers screening cells, not parcels or listings. Every cell
+          shown still has unverified grid capacity and unknown zoning.
         </p>
       </div>
     </aside>

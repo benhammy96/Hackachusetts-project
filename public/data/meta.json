@@ -13,7 +13,8 @@
       "landing_page": "https://tigerweb.geo.census.gov/tigerwebmain/TIGERweb_restmapservice.html",
       "vintage": "TIGERweb current",
       "license": "US Government work, public domain",
-      "status": "verified"
+      "status": "verified",
+      "role": "basemap"
     },
     "massgis_hydro": {
       "name": "MassGIS Major Hydrography (lakes and ponds)",
@@ -23,7 +24,19 @@
       "vintage": "MassGIS current",
       "license": "MassGIS open data",
       "status": "verified",
+      "role": "basemap",
       "caveat": "Used only to draw the basemap, not in any score."
+    },
+    "massgis_base_streets": {
+      "name": "MassGIS Base Streets",
+      "publisher": "MassGIS",
+      "url": "https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/MassGIS_Roads/VectorTileServer",
+      "landing_page": "https://www.mass.gov/info-details/massgis-data-base-streets",
+      "vintage": "MassGIS current, loaded as live vector tiles",
+      "license": "MassGIS open data",
+      "status": "verified",
+      "role": "basemap",
+      "caveat": "Optional display layer only; it requires a network connection and is not used in any score or distance measurement."
     },
     "massgis_towns": {
       "name": "MassGIS Census 2020 Towns",
@@ -42,7 +55,7 @@
       "vintage": "2020 Decennial Census (PL 94-171)",
       "license": "MassGIS open data / public domain",
       "status": "verified",
-      "caveat": "pop_1km sums POP20 for census blocks whose Census-assigned internal point falls within 1 km of the hex centre. Block-level geography keeps the aggregation error small but the result is still an estimate."
+      "caveat": "Residents within 1 km sums POP20 for census blocks whose Census-assigned internal point falls within 1 km of the cell centre. Block-level geography keeps the aggregation error small but the result is still an estimate."
     },
     "massgis_ej2020": {
       "name": "MassGIS 2020 US Census Environmental Justice Populations",
@@ -61,7 +74,8 @@
       "landing_page": "https://www.mass.gov/info-details/massgis-data-protected-and-recreational-openspace",
       "vintage": "continuously updated",
       "license": "MassGIS open data",
-      "status": "verified"
+      "status": "verified",
+      "role": "exclusion"
     },
     "massdep_wetlands": {
       "name": "MassDEP Wetlands (DEP Wetland Areas)",
@@ -70,7 +84,8 @@
       "landing_page": "https://www.mass.gov/info-details/massgis-data-massdep-wetlands-2005",
       "vintage": "MassDEP wetlands programme",
       "license": "MassGIS open data",
-      "status": "verified"
+      "status": "verified",
+      "role": "exclusion"
     },
     "fema_nfhl": {
       "name": "FEMA National Flood Hazard Layer (served by MassGIS)",
@@ -88,7 +103,8 @@
       "landing_page": "https://www.mass.gov/info-details/massgis-data-massdep-approved-zone-i-areas",
       "vintage": "MassDEP current",
       "license": "MassGIS open data",
-      "status": "verified"
+      "status": "verified",
+      "role": "exclusion"
     },
     "massdep_zonea": {
       "name": "MassDEP Surface Water Protection Zone A",
@@ -97,7 +113,8 @@
       "landing_page": "https://www.mass.gov/info-details/massgis-data-massdep-surface-water-supply-protection-areas",
       "vintage": "MassDEP current",
       "license": "MassGIS open data",
-      "status": "verified"
+      "status": "verified",
+      "role": "exclusion"
     },
     "massdep_zone2": {
       "name": "MassDEP Approved Wellhead Protection Areas (Zone II) and IWPA",
@@ -142,7 +159,8 @@
       "landing_page": "https://www.mass.gov/info-details/massgis-data-acute-care-hospitals",
       "vintage": "DPH current",
       "license": "MassGIS open data",
-      "status": "verified"
+      "status": "verified",
+      "role": "school_or_hospital_500m"
     },
     "massgis_highways": {
       "name": "MassGIS Major Highways",
@@ -185,7 +203,7 @@
       "publisher": "OpenStreetMap contributors (via Overpass API)",
       "url": "https://overpass-api.de/api/interpreter",
       "landing_page": "https://wiki.openstreetmap.org/wiki/Tag:power%3Dline",
-      "vintage": "live extract, see fetched_at",
+      "vintage": "live extract at grid build time",
       "license": "ODbL 1.0",
       "status": "verified",
       "caveat": "Crowd-sourced; mapping coverage is incomplete and voltage tags are not audited. Distance to a mapped line is not interconnection capacity."
@@ -195,7 +213,7 @@
       "publisher": "OpenStreetMap contributors (via Overpass API)",
       "url": "https://overpass-api.de/api/interpreter",
       "landing_page": "https://wiki.openstreetmap.org/wiki/Tag:power%3Dplant",
-      "vintage": "live extract, see fetched_at",
+      "vintage": "live extract at grid build time",
       "license": "ODbL 1.0",
       "status": "proxy",
       "caveat": "Proximity to generation is not a clean-energy procurement pathway and does not establish Clean Energy Standard eligibility."
@@ -372,11 +390,11 @@
     }
   },
   "notes": [
-    "Values are raw measurements. Scores are computed in the browser from lib/score.ts.",
-    "d_fiber_km is null: no licensed fiber-route dataset is wired into this build. d_highway_km is published separately and is explicitly NOT a fiber measurement.",
-    "water_stress is null: no WRC stressed-basin or WRI Aqueduct join in this build. in_sw_supply_watershed is used as a documented water-sensitivity proxy instead.",
+    "Fiber routes are not measured. No licensed fiber-route dataset is loaded, so the fiber factor is left out of the score. Distance to a major highway is shown separately as road access. It is not a fiber measurement.",
+    "Water stress is not measured. No stressed-basin index is loaded, so the water factor is left out of the score. Supply-watershed membership and Zone II distance are shown as evidence only.",
     "Distance to a mapped transmission line is not interconnection capacity.",
-    "Polygon intersections are preliminary geospatial screens, not legal determinations.",
-    "Map overlay GeoJSONs are generalised for display; the per-hex flags above come from full-resolution queries."
+    "Polygon overlaps are preliminary screens, not legal determinations.",
+    "Map overlays are simplified for display. The per-cell flags come from full-resolution queries.",
+    "The grid holds raw measurements. Scores are calculated in your browser from them."
   ]
 }

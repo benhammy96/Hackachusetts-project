@@ -183,7 +183,7 @@ export function SiteCompare({
               <thead className="sticky top-0 z-10 bg-panel">
                 <tr>
                   <th scope="col" className="w-[190px] border-b border-line px-3 py-2 text-left">
-                    <span className="overline">Measure</span>
+                    <span className="eyebrow">Measure</span>
                   </th>
                   {sites.map((s) => (
                     <th

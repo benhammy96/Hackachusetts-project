@@ -10,22 +10,27 @@ import {
   type StyleSpecification,
 } from "maplibre-gl";
 import { MapLibreOverlay } from "@deck.gl/maplibre";
-import { ArcLayer, GeoJsonLayer, PathLayer, PolygonLayer, TextLayer } from "@deck.gl/layers";
-import { H3HexagonLayer } from "@deck.gl/geo-layers";
+import {
+  GeoJsonLayer,
+  PathLayer,
+  PolygonLayer,
+  TextLayer,
+} from "@deck.gl/layers";
+import { H3HexagonLayer, MVTLayer } from "@deck.gl/geo-layers";
 import { cellToBoundary } from "h3-js";
-import nearestPointOnLine from "@turf/nearest-point-on-line";
-import type { Feature, FeatureCollection, LineString } from "geojson";
+import type { Feature, FeatureCollection } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 /** deck.gl accessors want fixed-length tuples, not GeoJSON's number[]. */
 type LngLat = [number, number];
+type ElevatedLngLat = [number, number, number];
 
 import { useAtlas } from "./atlas-provider";
 import { useGeoJson, prefersReducedMotion } from "./use-geojson";
 import { MapLegend } from "./map-legend";
 import { HexTooltip } from "./hex-tooltip";
 import { colorForScore } from "@/lib/score";
-import { presetFor } from "@/lib/weights";
+import { titleCase } from "@/lib/format";
 import type { HexRecord } from "@/lib/types";
 
 const ATTRIBUTION = [
@@ -34,28 +39,46 @@ const ATTRIBUTION = [
 ];
 
 /**
- * There is no tile service behind this map.
+ * The core map has no tile-service dependency.
  *
- * UI_DESIGN.md section 6 asks for a custom low-noise dark basemap, and
- * ATLAS.md requires the demo to work without a live external API. So the
- * basemap is drawn from the same MassGIS geometry the pipeline already
- * downloads — water, town boundaries and the state outline — shipped as static
- * GeoJSON. Nothing here needs a key, and the map renders fully offline.
+ * The basemap is drawn from the same MassGIS geometry the pipeline downloads:
+ * water, town boundaries and the state outline, all shipped as static GeoJSON.
+ * The optional Streets toggle adds live MassGIS vector tiles; tile failure does
+ * not affect the local basemap, grid, or scoring data.
  */
 const STYLE: StyleSpecification = {
   version: 8,
   sources: {},
-  layers: [{ id: "bg", type: "background", paint: { "background-color": "#0B0F14" } }],
+  layers: [
+    // The canvas outside Massachusetts is predominantly Atlantic water. Town
+    // polygons paint the Commonwealth's land above this background.
+    { id: "bg", type: "background", paint: { "background-color": "#0D2230" } },
+  ],
 };
 
-/* Basemap palette: muted charcoal land, darker desaturated water. */
+/* Basemap palette: charcoal land and clearly visible, subdued blue water. */
 const LAND_FILL: [number, number, number, number] = [23, 30, 38, 255];
 const LAND_LINE: [number, number, number, number] = [45, 58, 70, 220];
-const WATER_FILL: [number, number, number, number] = [15, 23, 32, 255];
-const WATER_LINE: [number, number, number, number] = [36, 52, 66, 180];
+const WATER_FILL: [number, number, number, number] = [18, 55, 75, 255];
+const WATER_LINE: [number, number, number, number] = [83, 158, 190, 245];
+const STREET_LINE: [number, number, number, number] = [129, 147, 163, 190];
 const STATE_LINE: [number, number, number, number] = [86, 104, 120, 235];
 
 const MA_CENTER: [number, number] = [-71.8, 42.15];
+
+/** Below this zoom the map labels counties; at or above it, towns. */
+const TOWN_LABEL_ZOOM = 9;
+/** Below this zoom, with nothing hovered or selected, the readout says "statewide". */
+const STATEWIDE_ZOOM = 8.2;
+const WATER_LABEL_ZOOM = 11;
+const STREET_TILES =
+  "https://tiles.arcgis.com/tiles/hGdibHYSPO59RG1h/arcgis/rest/services/MassGIS_Roads/VectorTileServer/tile/{z}/{y}/{x}.pbf";
+
+interface TownInfo {
+  name: string;
+  county: string | null;
+  feature: Feature;
+}
 
 // maplibre-gl 6 resolves its worker with `new URL(..., import.meta.url)`, which
 // Turbopack cannot trace. scripts/copy-maplibre-worker.mjs stages the shipped
@@ -81,10 +104,16 @@ export function AtlasMap() {
   const overlayRef = React.useRef<MapLibreOverlay | null>(null);
   const [ready, setReady] = React.useState(false);
   const [zoom, setZoom] = React.useState(7.6);
-  const [hover, setHover] = React.useState<{ hex: HexRecord; x: number; y: number } | null>(
-    null,
-  );
+  const [hover, setHover] = React.useState<{
+    hex: HexRecord;
+    x: number;
+    y: number;
+  } | null>(null);
   const flownIn = React.useRef(false);
+  /** Town under the map centre, kept for the location readout. */
+  const [centerTown, setCenterTown] = React.useState<string | null | undefined>(
+    undefined,
+  );
 
   // Transmission is needed both as an overlay and to draw the arc from a
   // selected site to the nearest qualifying line, so it loads up front.
@@ -93,7 +122,10 @@ export function AtlasMap() {
   const towns = useGeoJson("/data/layers/towns.geojson", true);
   const water = useGeoJson("/data/layers/water.geojson", true);
   const ej = useGeoJson("/data/layers/ej.geojson", layers.ej);
-  const protectedLand = useGeoJson("/data/layers/protected.geojson", layers.protected);
+  const protectedLand = useGeoJson(
+    "/data/layers/protected.geojson",
+    layers.protected,
+  );
   const flood = useGeoJson("/data/layers/flood.geojson", layers.flood);
 
   /* ------------------------------------------------------------ map setup */
@@ -106,14 +138,17 @@ export function AtlasMap() {
       zoom: 7.1,
       pitch: 0,
       bearing: 0,
-      maxZoom: 15,
+      maxZoom: 18,
       minZoom: 5.5,
       attributionControl: { compact: true, customAttribution: ATTRIBUTION },
       dragRotate: true,
     });
     mapRef.current = map;
 
-    map.addControl(new NavigationControl({ visualizePitch: true }), "bottom-right");
+    map.addControl(
+      new NavigationControl({ visualizePitch: true }),
+      "bottom-right",
+    );
     map.addControl(new ScaleControl({ unit: "metric" }), "bottom-left");
 
     const overlay = new MapLibreOverlay({ interleaved: false, layers: [] });
@@ -165,6 +200,21 @@ export function AtlasMap() {
     };
   }, [ready, index, selectAt]);
 
+  /* ------------------------------------------- town under the map centre */
+  React.useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready || !index) return;
+    const update = () => {
+      const c = map.getCenter();
+      setCenterTown(index.at(c.lat, c.lng)?.town ?? null);
+    };
+    update();
+    map.on("moveend", update);
+    return () => {
+      map.off("moveend", update);
+    };
+  }, [ready, index]);
+
   /* ----------------------------------------------------- opening fly-in */
   React.useEffect(() => {
     const map = mapRef.current;
@@ -195,6 +245,8 @@ export function AtlasMap() {
     map.easeTo({
       center: [camera.lng, camera.lat],
       zoom: camera.zoom ?? map.getZoom(),
+      pitch: 0,
+      bearing: 0,
       duration: reduce ? 0 : 520,
       essential: true,
     });
@@ -206,31 +258,49 @@ export function AtlasMap() {
     return index.all;
   }, [index]);
 
-  const nearestLinePoint = React.useMemo<LngLat | null>(() => {
-    if (!selected || !transmission.data) return null;
-    const requiredKv = presetFor(mw).requiredKv;
-    let best: { d: number; pos: LngLat } | null = null;
-    const origin: LngLat = [selected.lng, selected.lat];
-    for (const f of transmission.data.features as Feature<LineString>[]) {
-      const kv = (f.properties?.kv as number) ?? 0;
-      if (kv < requiredKv) continue;
-      if (f.geometry?.type !== "LineString") continue;
-      // Cheap reject before the exact nearest-point computation.
-      const [x0, y0] = f.geometry.coordinates[0];
-      if (Math.abs(x0 - selected.lng) > 0.8 || Math.abs(y0 - selected.lat) > 0.8) continue;
-      try {
-        const snapped = nearestPointOnLine(f.geometry, origin, { units: "kilometers" });
-        const d = snapped.properties?.dist ?? Infinity;
-        if (!best || d < best.d) {
-          const c = snapped.geometry.coordinates;
-          best = { d, pos: [c[0], c[1]] };
-        }
-      } catch {
-        /* skip malformed geometry */
+  /* Town polygons keyed by the upper-case name the grid uses, plus one label
+     point per county (the mean of its town label points). */
+  const townLookup = React.useMemo(() => {
+    const byName = new Map<string, TownInfo>();
+    const counties = new Map<string, { sx: number; sy: number; n: number }>();
+    for (const f of (towns.data?.features ?? []) as Feature[]) {
+      const name = f.properties?.town as string | undefined;
+      if (!name) continue;
+      const county = (f.properties?.county as string | undefined) ?? null;
+      byName.set(name.toUpperCase(), { name, county, feature: f });
+      const lng = f.properties?.lng as number;
+      const lat = f.properties?.lat as number;
+      if (county && Number.isFinite(lng) && Number.isFinite(lat)) {
+        const c = counties.get(county) ?? { sx: 0, sy: 0, n: 0 };
+        c.sx += lng;
+        c.sy += lat;
+        c.n += 1;
+        counties.set(county, c);
       }
     }
-    return best?.pos ?? null;
-  }, [selected, transmission.data, mw]);
+    const countyLabels = [...counties.entries()].map(([county, c]) => ({
+      name: county.toUpperCase(),
+      position: [c.sx / c.n, c.sy / c.n, 100] as ElevatedLngLat,
+    }));
+    const waterLabels = [...((water.data?.features ?? []) as Feature[])]
+      .map((f) => ({
+        name: (f.properties?.name as string | null) ?? "",
+        position: featureLabelPosition(f, 100),
+      }))
+      .filter((d): d is { name: string; position: ElevatedLngLat } =>
+        Boolean(d.name && d.position),
+      );
+    return { byName, countyLabels, waterLabels };
+  }, [towns.data, water.data]);
+
+  const hoverTownKey = hover?.hex.town ?? null;
+  const hoveredH3 = hover?.hex.h3 ?? null;
+  const selectedTownKey = selected?.town ?? null;
+
+  const openWater = React.useMemo(
+    () => scored.filter(isOpenWaterCell),
+    [scored],
+  );
 
   const deckLayers = React.useMemo(() => {
     const out: unknown[] = [];
@@ -248,35 +318,6 @@ export function AtlasMap() {
           getLineWidth: 0.6,
           lineWidthUnits: "pixels",
           lineWidthMinPixels: 0.5,
-        }),
-      );
-    }
-
-    if (water.data) {
-      out.push(
-        new GeoJsonLayer({
-          id: "basemap-water",
-          data: water.data,
-          stroked: true,
-          filled: true,
-          getFillColor: WATER_FILL,
-          getLineColor: WATER_LINE,
-          getLineWidth: 0.5,
-          lineWidthUnits: "pixels",
-        }),
-      );
-    }
-
-    if (boundary.data) {
-      out.push(
-        new GeoJsonLayer({
-          id: "ma-boundary",
-          data: boundary.data,
-          stroked: true,
-          filled: false,
-          getLineColor: STATE_LINE,
-          getLineWidth: 1.4,
-          lineWidthUnits: "pixels",
         }),
       );
     }
@@ -354,6 +395,92 @@ export function AtlasMap() {
       );
     }
 
+    if (openWater.length) {
+      // The local hydrography polygons show detailed shorelines. This H3 layer
+      // also covers cells classified as open water by the land-cover and
+      // exclusion screens, including offshore cells with no land-cover record.
+      out.push(
+        new H3HexagonLayer({
+          id: "open-water-cells",
+          data: openWater,
+          pickable: false,
+          highPrecision: false,
+          extruded: false,
+          coverage: 1,
+          getHexagon: (d: HexRecord) => d.h3,
+          getFillColor: WATER_FILL,
+        }),
+      );
+    }
+
+    if (water.data) {
+      // Redraw water above the score grid. Water cells remain hoverable because
+      // pointer lookup uses H3 coordinates rather than deck.gl picking.
+      out.push(
+        new GeoJsonLayer({
+          id: "water-detail",
+          data: water.data,
+          stroked: true,
+          filled: true,
+          getFillColor: WATER_FILL,
+          getLineColor: WATER_LINE,
+          getLineWidth: 1,
+          lineWidthUnits: "pixels",
+          lineWidthMinPixels: 0.75,
+        }),
+      );
+    }
+
+    if (layers.streets) {
+      out.push(
+        new MVTLayer({
+          id: "massgis-streets",
+          data: STREET_TILES,
+          minZoom: 8,
+          maxZoom: 20,
+          binary: false,
+          filled: false,
+          stroked: true,
+          getLineColor: STREET_LINE,
+          getLineWidth: 1,
+          lineWidthUnits: "pixels",
+          lineWidthMinPixels: 0.65,
+          lineWidthMaxPixels: 2,
+          getPointRadius: 0,
+          pointRadiusMinPixels: 0,
+        }),
+      );
+    }
+
+    if (towns.data) {
+      out.push(
+        new GeoJsonLayer({
+          id: "town-boundaries",
+          data: towns.data,
+          stroked: true,
+          filled: false,
+          getLineColor: LAND_LINE,
+          getLineWidth: 0.8,
+          lineWidthUnits: "pixels",
+          lineWidthMinPixels: 0.6,
+        }),
+      );
+    }
+
+    if (boundary.data) {
+      out.push(
+        new GeoJsonLayer({
+          id: "ma-boundary",
+          data: boundary.data,
+          stroked: true,
+          filled: false,
+          getLineColor: STATE_LINE,
+          getLineWidth: 1.4,
+          lineWidthUnits: "pixels",
+        }),
+      );
+    }
+
     if (layers.transmission && transmission.data) {
       out.push(
         new GeoJsonLayer({
@@ -377,50 +504,130 @@ export function AtlasMap() {
       );
     }
 
-    /* Town names, kept out of the way until the view is local enough that
-       they aid orientation rather than add noise. */
-    if (towns.data && zoom >= 9) {
+    /* Outline only the town under the pointer. Selection is indicated by the
+       footprint and inspector, without a persistent blue boundary. */
+    const hoverTown =
+      hoverTownKey && hoverTownKey !== selectedTownKey
+        ? townLookup.byName.get(hoverTownKey)
+        : undefined;
+    if (hoverTown) {
+      out.push(
+        new GeoJsonLayer({
+          id: "town-hover",
+          data: [hoverTown.feature],
+          stroked: true,
+          filled: true,
+          getFillColor: [240, 243, 245, 16],
+          getLineColor: [240, 243, 245, 170],
+          getLineWidth: 1.4,
+          lineWidthUnits: "pixels",
+        }),
+      );
+    }
+
+    if (hoveredH3) {
+      const ring = cellToBoundary(hoveredH3).map(
+        ([lat, lng]) => [lng, lat] as LngLat,
+      );
+      out.push(
+        new PolygonLayer({
+          id: "hovered-cell",
+          data: [{ polygon: ring }],
+          stroked: true,
+          filled: true,
+          getPolygon: (d: { polygon: LngLat[] }) => d.polygon,
+          getFillColor: [240, 243, 245, 28],
+          getLineColor: [240, 243, 245, 245],
+          getLineWidth: 2.5,
+          lineWidthUnits: "pixels",
+        }),
+      );
+    }
+
+    const labelStyle = {
+      sizeUnits: "pixels" as const,
+      fontFamily: "Inter, system-ui, sans-serif",
+      characterSet: "auto" as const,
+      getTextAnchor: "middle" as const,
+      getAlignmentBaseline: "center" as const,
+      billboard: true,
+      outlineWidth: 3,
+      outlineColor: [11, 15, 20, 230] as [number, number, number, number],
+      fontSettings: { sdf: true },
+    };
+
+    /* Statewide: county names give regional orientation. Local: town names.
+       Never both, so the map stays quiet. */
+    if (zoom < TOWN_LABEL_ZOOM && townLookup.countyLabels.length) {
+      out.push(
+        new TextLayer<{ name: string; position: ElevatedLngLat }>({
+          id: "county-labels",
+          data: townLookup.countyLabels,
+          getPosition: (d) => d.position,
+          getText: (d) => d.name,
+          getSize: 10.5,
+          getColor: [156, 170, 182, 165],
+          fontWeight: 600,
+          ...labelStyle,
+        }),
+      );
+    }
+
+    if (towns.data && zoom >= TOWN_LABEL_ZOOM) {
       const labels = (towns.data.features as Feature[])
         .map((f) => ({
+          key: ((f.properties?.town as string) ?? "").toUpperCase(),
           name: (f.properties?.town as string) ?? "",
-          position: [f.properties?.lng as number, f.properties?.lat as number] as LngLat,
+          position: [
+            f.properties?.lng as number,
+            f.properties?.lat as number,
+            100,
+          ] as ElevatedLngLat,
         }))
         .filter((d) => d.name && Number.isFinite(d.position[0]));
       out.push(
-        new TextLayer<{ name: string; position: LngLat }>({
+        new TextLayer<{
+          key: string;
+          name: string;
+          position: ElevatedLngLat;
+        }>({
           id: "town-labels",
           data: labels,
           getPosition: (d) => d.position,
           getText: (d) => d.name,
-          getSize: 11,
-          sizeUnits: "pixels",
-          getColor: [156, 170, 182, 190],
-          fontFamily: "Inter, system-ui, sans-serif",
-          characterSet: "auto",
-          getTextAnchor: "middle",
-          getAlignmentBaseline: "center",
-          outlineWidth: 2,
-          outlineColor: [11, 15, 20, 220],
-          fontSettings: { sdf: true },
+          getSize: (d) =>
+            d.key === selectedTownKey || d.key === hoverTownKey ? 13 : 11.5,
+          getColor: (d) =>
+            d.key === selectedTownKey
+              ? [86, 201, 213, 255]
+              : d.key === hoverTownKey
+                ? [240, 243, 245, 245]
+                : [156, 170, 182, 200],
+          updateTriggers: {
+            getSize: [selectedTownKey, hoverTownKey],
+            getColor: [selectedTownKey, hoverTownKey],
+          },
+          ...labelStyle,
+        }),
+      );
+    }
+
+    if (zoom >= WATER_LABEL_ZOOM && townLookup.waterLabels.length) {
+      out.push(
+        new TextLayer<{ name: string; position: ElevatedLngLat }>({
+          id: "water-labels",
+          data: townLookup.waterLabels,
+          getPosition: (d) => d.position,
+          getText: (d) => d.name,
+          getSize: 10.5,
+          getColor: [123, 190, 216, 225],
+          maxWidth: 160,
+          ...labelStyle,
         }),
       );
     }
 
     if (selected) {
-      const ring = cellToBoundary(selected.h3).map(([lat, lng]) => [lng, lat] as LngLat);
-      out.push(
-        new PolygonLayer({
-          id: "selected-cell",
-          data: [{ polygon: ring }],
-          stroked: true,
-          filled: false,
-          getPolygon: (d: { polygon: LngLat[] }) => d.polygon,
-          getLineColor: [86, 201, 213, 255],
-          getLineWidth: 2,
-          lineWidthUnits: "pixels",
-        }),
-      );
-
       // Footprint scaled to the MW preset, as a plan figure rather than a tower.
       const sideM = Math.sqrt(mw * 1200);
       const dLat = sideM / 2 / 111_320;
@@ -439,11 +646,10 @@ export function AtlasMap() {
             },
           ],
           extruded: true,
-          wireframe: true,
+          wireframe: false,
           getPolygon: (d: { polygon: LngLat[] }) => d.polygon,
           getElevation: Math.min(70, 14 + mw / 8),
           getFillColor: [86, 201, 213, 92],
-          getLineColor: [86, 201, 213, 220],
         }),
       );
 
@@ -452,7 +658,9 @@ export function AtlasMap() {
         const t = (i / 64) * Math.PI * 2;
         const km = 1;
         return [
-          selected.lng + (km / 111.32 / Math.cos((selected.lat * Math.PI) / 180)) * Math.cos(t),
+          selected.lng +
+            (km / 111.32 / Math.cos((selected.lat * Math.PI) / 180)) *
+              Math.cos(t),
           selected.lat + (km / 110.574) * Math.sin(t),
         ];
       });
@@ -466,27 +674,15 @@ export function AtlasMap() {
           widthUnits: "pixels",
         }),
       );
-
-      if (nearestLinePoint) {
-        out.push(
-          new ArcLayer<{ from: LngLat; to: LngLat }>({
-            id: "grid-arc",
-            data: [{ from: [selected.lng, selected.lat] as LngLat, to: nearestLinePoint }],
-            getSourcePosition: (d) => d.from,
-            getTargetPosition: (d) => d.to,
-            getSourceColor: [86, 201, 213, 230],
-            getTargetColor: [122, 198, 230, 230],
-            getWidth: 1.6,
-            getHeight: 0.35,
-          }),
-        );
-      }
     }
 
     return out;
   }, [
     boundary.data,
     towns.data,
+    townLookup,
+    hoveredH3,
+    selectedTownKey,
     water.data,
     zoom,
     layers,
@@ -494,9 +690,9 @@ export function AtlasMap() {
     protectedLand.data,
     ej.data,
     scored,
+    openWater,
     transmission.data,
     selected,
-    nearestLinePoint,
     mw,
     lens,
     cooling,
@@ -518,7 +714,39 @@ export function AtlasMap() {
         aria-label="Massachusetts screening map"
       />
 
-      {hover && <HexTooltip hex={hover.hex} x={hover.x} y={hover.y} />}
+      {ready && index && (
+        <LocationReadout
+          {...(hover
+            ? {
+                context: "Under cursor",
+                town: lookupTown(townLookup.byName, hover.hex.town),
+              }
+            : selected
+              ? {
+                  context: "Selected site",
+                  town: lookupTown(townLookup.byName, selected.town),
+                }
+              : zoom < STATEWIDE_ZOOM
+                ? { context: "Statewide view", town: null, statewide: true }
+                : {
+                    context: "Map centre",
+                    town: lookupTown(townLookup.byName, centerTown ?? null),
+                  })}
+        />
+      )}
+
+      {hover && (
+        <HexTooltip
+          hex={hover.hex}
+          x={hover.x}
+          y={hover.y}
+          county={
+            hover.hex.town
+              ? (townLookup.byName.get(hover.hex.town)?.county ?? null)
+              : null
+          }
+        />
+      )}
 
       <MapLegend
         basemapFailed={Boolean(towns.error || water.error || boundary.error)}
@@ -533,6 +761,95 @@ export function AtlasMap() {
       {(loading || !ready) && (
         <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[8px] border border-line bg-panel/95 px-4 py-3 text-[12px] text-muted">
           Loading the statewide screening grid…
+        </div>
+      )}
+    </div>
+  );
+}
+
+function isOpenWaterCell(hex: HexRecord): boolean {
+  if (hex.land_cover_name === "Water") return true;
+  const reason = hex.exclude_reason ?? "";
+  return (
+    reason.startsWith("Open water (") ||
+    reason.includes("mapped wetland or open water: Open Water")
+  );
+}
+
+function featureLabelPosition(
+  feature: Feature,
+  elevation = 0,
+): ElevatedLngLat | null {
+  const bounds = {
+    minLng: Infinity,
+    minLat: Infinity,
+    maxLng: -Infinity,
+    maxLat: -Infinity,
+  };
+  const visit = (value: unknown) => {
+    if (!Array.isArray(value)) return;
+    if (
+      value.length >= 2 &&
+      typeof value[0] === "number" &&
+      typeof value[1] === "number"
+    ) {
+      bounds.minLng = Math.min(bounds.minLng, value[0]);
+      bounds.maxLng = Math.max(bounds.maxLng, value[0]);
+      bounds.minLat = Math.min(bounds.minLat, value[1]);
+      bounds.maxLat = Math.max(bounds.maxLat, value[1]);
+      return;
+    }
+    value.forEach(visit);
+  };
+  visit(
+    "coordinates" in feature.geometry ? feature.geometry.coordinates : null,
+  );
+  if (!Number.isFinite(bounds.minLng)) return null;
+  return [
+    (bounds.minLng + bounds.maxLng) / 2,
+    (bounds.minLat + bounds.maxLat) / 2,
+    elevation,
+  ];
+}
+
+function lookupTown(
+  byName: Map<string, TownInfo>,
+  key: string | null,
+): { name: string; county: string | null } | null {
+  if (!key) return null;
+  const t = byName.get(key);
+  return t
+    ? { name: t.name, county: t.county }
+    : { name: titleCase(key), county: null };
+}
+
+/** Top-left "you are here": the town and county the map is showing. */
+function LocationReadout({
+  context,
+  town,
+  statewide,
+}: {
+  context: string;
+  town: { name: string; county: string | null } | null;
+  statewide?: boolean;
+}) {
+  return (
+    <div className="pointer-events-none absolute left-3 top-3 z-10 max-w-[min(280px,calc(100%-276px))] rounded-[8px] sm:min-w-[188px] border border-line bg-panel/95 px-3 py-2">
+      <div className="eyebrow">{context}</div>
+      {town ? (
+        <div className="mt-0.5 flex min-w-0 items-baseline gap-1.5">
+          <span className="truncate text-[15px] font-semibold text-fg">
+            {town.name}
+          </span>
+          {town.county && (
+            <span className="shrink-0 text-[12px] text-muted">
+              {town.county} County
+            </span>
+          )}
+        </div>
+      ) : (
+        <div className="mt-0.5 text-[15px] font-semibold text-fg">
+          {statewide ? "Massachusetts" : "Outside the screening grid"}
         </div>
       )}
     </div>

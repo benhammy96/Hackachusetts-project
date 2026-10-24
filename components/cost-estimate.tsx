@@ -33,7 +33,7 @@ export function CostEstimate() {
   return (
     <div className="space-y-3">
       <div className="flex items-baseline justify-between">
-        <h4 className="overline">Modelled operating scenario</h4>
+        <h4 className="eyebrow">Modelled operating scenario</h4>
         <StatusTag status="modeled" />
       </div>
 
@@ -123,7 +123,7 @@ export function CostEstimate() {
 
       <div className="rounded-[6px] border border-line bg-raised/50 p-2">
         <div className="mb-1 flex items-center gap-1.5">
-          <span className="overline">Assumptions behind these figures</span>
+          <span className="eyebrow">Assumptions behind these figures</span>
           <InfoDot
             content={
               <>Changing a scenario input changes the derived figures above. It never changes a
@@ -178,7 +178,7 @@ export function CostEstimate() {
 function Metric({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="rounded-[6px] border border-line bg-raised/40 px-2 py-1.5">
-      <dt className="overline truncate">{label}</dt>
+      <dt className="eyebrow truncate">{label}</dt>
       <dd className="num mt-0.5 text-[14px] font-semibold text-fg">{value}</dd>
       {sub && <dd className="truncate text-[10px] text-subtle">{sub}</dd>}
     </div>

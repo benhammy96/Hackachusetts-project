@@ -21,6 +21,12 @@ const OVERLAYS: {
   note: string;
 }[] = [
   {
+    key: "streets",
+    label: "Streets",
+    swatch: "#8193A3",
+    note: "Live MassGIS Base Streets vector tiles, shown for map context only. Local streets appear as you zoom in. This layer requires a network connection and does not affect the score.",
+  },
+  {
     key: "ej",
     label: "EJ block groups",
     swatch: "#E6B765",
@@ -63,11 +69,15 @@ export function MapLegend({
   return (
     <>
       {basemapFailed && (
-        <div className="absolute left-3 top-3 z-10 flex max-w-[320px] items-start gap-2 rounded-[8px] border border-warn/40 bg-panel/97 px-2.5 py-2">
-          <WifiOff size={13} className="mt-0.5 shrink-0 text-warn" aria-hidden />
+        <div className="absolute left-3 top-[72px] z-10 flex max-w-[320px] items-start gap-2 rounded-[8px] border border-warn/40 bg-panel/97 px-2.5 py-2">
+          <WifiOff
+            size={13}
+            className="mt-0.5 shrink-0 text-warn"
+            aria-hidden
+          />
           <p className="text-[11px] leading-snug text-muted">
-            Part of the basemap geometry did not load. Scores are unaffected — they come
-            from the grid file, not the basemap.
+            Part of the basemap geometry did not load. Scores are unaffected —
+            they come from the grid file, not the basemap.
           </p>
         </div>
       )}
@@ -75,13 +85,14 @@ export function MapLegend({
       {/* Score ramp */}
       <div className="absolute bottom-3 left-3 z-10 w-[218px] rounded-[8px] border border-line bg-panel/95 p-2.5">
         <div className="mb-1.5 flex items-center justify-between">
-          <span className="overline">Suitability, 0–10</span>
+          <span className="eyebrow">Suitability, 0–10</span>
           <InfoDot
             side="top"
             content={
               <>
-                Colour and label both encode the band, so colour is never the only
-                signal. Scores are a planning aid, not a permitting decision.
+                Colour and label both encode the band, so colour is never the
+                only signal. Scores are a planning aid, not a permitting
+                decision.
               </>
             }
           />
@@ -95,7 +106,8 @@ export function MapLegend({
                 style={{ background: b.color }}
               />
               <span className="num w-[52px] shrink-0 text-subtle">
-                {b.min.toFixed(1)}–{b.key === "strong" ? "10" : b.max.toFixed(1)}
+                {b.min.toFixed(1)}–
+                {b.key === "strong" ? "10" : b.max.toFixed(1)}
               </span>
               <span className="truncate text-muted">{b.label}</span>
             </li>
@@ -112,8 +124,9 @@ export function MapLegend({
         </ul>
         {meta && (
           <p className="mt-2 border-t border-line pt-1.5 text-[10px] leading-snug text-subtle">
-            {meta.hex_count.toLocaleString()} cells · H3 res {meta.h3_resolution} ·{" "}
-            {meta.excluded_count.toLocaleString()} excluded by a hard screen
+            {meta.hex_count.toLocaleString()} cells · H3 res{" "}
+            {meta.h3_resolution} · {meta.excluded_count.toLocaleString()}{" "}
+            excluded by a hard screen
           </p>
         )}
       </div>
@@ -122,7 +135,7 @@ export function MapLegend({
       <div className="absolute right-3 top-3 z-10 w-[246px]">
         <div className="rounded-[8px] border border-line bg-panel/95">
           <div className="flex items-center justify-between px-2.5 py-2">
-            <span className="overline flex items-center gap-1.5">
+            <span className="eyebrow flex items-center gap-1.5">
               <Layers size={12} aria-hidden /> Layers
             </span>
             <Button
@@ -149,12 +162,26 @@ export function MapLegend({
                 onChange={(v) => setLayer("extrude", v)}
                 detail="3D"
               />
+              <div className="flex min-h-[32px] items-center gap-2 px-1.5 py-1">
+                <span
+                  aria-hidden
+                  className="h-2.5 w-2.5 shrink-0 rounded-[2px] border border-[#539ebe] bg-[#12374b]"
+                />
+                <span className="min-w-0 flex-1 text-[12px] text-fg">
+                  Open water
+                </span>
+                <span className="eyebrow shrink-0">Mapped</span>
+              </div>
               <div className="my-1 h-px bg-line" />
               {OVERLAYS.map((o) => {
                 const st = o.state ? overlayState[o.state] : undefined;
                 const on = layers[o.key];
                 const detail =
-                  on && st?.loading ? "loading" : on && st?.error ? "failed" : undefined;
+                  on && st?.loading
+                    ? "loading"
+                    : on && st?.error
+                      ? "failed"
+                      : undefined;
                 return (
                   <div key={o.key} className="flex items-center gap-1">
                     <div className="min-w-0 flex-1">
@@ -166,15 +193,25 @@ export function MapLegend({
                         detail={detail}
                       />
                     </div>
-                    <InfoDot side="left" content={o.note} label={`About ${o.label}`} />
+                    <InfoDot
+                      side="left"
+                      content={o.note}
+                      label={`About ${o.label}`}
+                    />
                   </div>
                 );
               })}
-              {OVERLAYS.some((o) => o.state && layers[o.key] && overlayState[o.state!].error) && (
+              {OVERLAYS.some(
+                (o) => o.state && layers[o.key] && overlayState[o.state!].error,
+              ) && (
                 <p className="mt-1 flex items-start gap-1.5 px-1.5 pb-1 text-[10px] leading-snug text-warn">
-                  <AlertTriangle size={11} className="mt-px shrink-0" aria-hidden />
-                  An overlay failed to load. Scores are unaffected — they come from the
-                  grid file, not the overlays.
+                  <AlertTriangle
+                    size={11}
+                    className="mt-px shrink-0"
+                    aria-hidden
+                  />
+                  An overlay failed to load. Scores are unaffected — they come
+                  from the grid file, not the overlays.
                 </p>
               )}
             </div>
