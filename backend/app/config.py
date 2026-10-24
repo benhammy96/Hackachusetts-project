@@ -43,6 +43,11 @@ class Settings(BaseSettings):
         """Return CORS origins as a cleaned list."""
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
+    @property
+    def ai_enabled(self) -> bool:
+        """True when an Anthropic API key is configured for live Claude calls."""
+        return bool(self.anthropic_api_key and self.anthropic_api_key.strip())
+
 
 @lru_cache
 def get_settings() -> Settings:
