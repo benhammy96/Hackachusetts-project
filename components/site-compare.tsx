@@ -4,7 +4,7 @@ import * as React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Trash2, X } from "lucide-react";
 import { useAtlas } from "./atlas-provider";
-import { Button, StatusTag } from "./ui/primitives";
+import { Button } from "./ui/primitives";
 import { fmtInt, fmtKm, fmtUsd, titleCase } from "@/lib/format";
 import {
   COOLING_LABEL,
@@ -187,10 +187,9 @@ export function SiteCompare({
                 Compare sites
               </Dialog.Title>
               <p className="mt-0.5 text-[11px] text-subtle">
-                Same units, same rows, same {mw} MW{" "}
-                {COOLING_LABEL[cooling].toLowerCase()} design under the{" "}
-                {LENS_LABEL[lens]} lens. Unresolved constraints stay visible for
-                every site.
+                Compare {mw} MW{" "}
+                {COOLING_LABEL[cooling].toLowerCase()} data center designs under the{" "}
+                {LENS_LABEL[lens]} lens.
               </p>
             </div>
             <div className="flex shrink-0 gap-1.5">
@@ -306,17 +305,6 @@ export function SiteCompare({
                 })}
               </tbody>
             </table>
-          </div>
-
-          <div className="shrink-0 border-t border-line px-4 py-2.5">
-            <div className="flex items-center gap-2">
-              <StatusTag status="modeled" />
-              <p className="text-[10.5px] leading-snug text-subtle">
-                Green marks the better value on rows where a direction is
-                meaningful. It does not mean the site is suitable. Scores are a
-                planning aid, not a permitting decision.
-              </p>
-            </div>
           </div>
         </Dialog.Content>
       </Dialog.Portal>

@@ -126,7 +126,7 @@ SCENARIO_INPUTS = {
         "unit": "ratio",
         "label": "Power usage effectiveness",
         "status": "assumption",
-        "source": "Atlas scenario input — adjust in the cost panel",
+        "source": "Scenario setting",
         "caveat": (
             "PUE is a scenario input, not a measurement of any facility. The low end "
             "reflects a well-run new build and the high end an average operating site."
@@ -138,7 +138,7 @@ SCENARIO_INPUTS = {
         "unit": "L/kWh of facility energy",
         "label": "Water usage effectiveness",
         "status": "assumption",
-        "source": "Atlas scenario input — adjust in the cost panel",
+        "source": "Scenario setting",
         "caveat": (
             "WUE is a scenario input with a declared denominator of total facility "
             "energy. Closed-loop and air-cooled designs approach zero on-site "
@@ -151,7 +151,7 @@ SCENARIO_INPUTS = {
         "unit": "hours/year",
         "label": "Operating hours at full IT load",
         "status": "assumption",
-        "source": "Atlas scenario input",
+        "source": "Scenario setting",
         "caveat": (
             "8,760 hours assumes continuous full utilisation, which overstates a real "
             "ramp-up year. IT_MW refers to IT load, not total site demand."
@@ -163,7 +163,7 @@ SCENARIO_INPUTS = {
         "unit": "USD per MW of IT capacity",
         "label": "Illustrative construction cost",
         "status": "assumption",
-        "source": "Atlas scenario input — replace with a project estimate",
+        "source": "Scenario setting",
         "caveat": (
             "A placeholder order of magnitude for comparing sites, not a cost estimate "
             "for any project. Land, interconnection and site works are excluded."

@@ -14,7 +14,14 @@ import {
   X,
 } from "lucide-react";
 import { useAtlas } from "./atlas-provider";
-import { Button, Flag, Kbd, Separator, Skeleton, Toggle } from "./ui/primitives";
+import {
+  Button,
+  Flag,
+  Kbd,
+  Separator,
+  Skeleton,
+  Toggle,
+} from "./ui/primitives";
 import { Hint, InfoDot } from "./ui/info";
 import { rankSites, type RankedSite } from "@/lib/alternatives";
 import { fmtKm, fmtScore, titleCase } from "@/lib/format";
@@ -63,7 +70,11 @@ interface Row extends RankedSite {
 /** Distance to a mapped line at the voltage this size needs. */
 function gridKm(hex: HexRecord, mw: number): number | null {
   const kv = presetFor(mw).requiredKv;
-  return kv === 345 ? hex.d_tx345_km : kv === 115 ? hex.d_tx115_km : hex.d_tx69_km;
+  return kv === 345
+    ? hex.d_tx345_km
+    : kv === 115
+      ? hex.d_tx115_km
+      : hex.d_tx69_km;
 }
 
 function compareRows(a: Row, b: Row, key: SortKey): number {
@@ -73,7 +84,9 @@ function compareRows(a: Row, b: Row, key: SortKey): number {
     case "score":
       return (a.result.score ?? 0) - (b.result.score ?? 0) || b.rank - a.rank;
     case "town":
-      return (a.hex.town ?? "").localeCompare(b.hex.town ?? "") || a.rank - b.rank;
+      return (
+        (a.hex.town ?? "").localeCompare(b.hex.town ?? "") || a.rank - b.rank
+      );
     case "land": {
       const ia = a.hex.land_class ? LAND_ORDER.indexOf(a.hex.land_class) : 99;
       const ib = b.hex.land_class ? LAND_ORDER.indexOf(b.hex.land_class) : 99;
@@ -103,7 +116,9 @@ export function SiteExplorer({
     // A timer rather than an animation frame: frames can be withheld while the
     // map is idle, and the input may only mount after the tab switch renders.
     setTimeout(() => {
-      const input = document.getElementById("explorer-search") as HTMLInputElement | null;
+      const input = document.getElementById(
+        "explorer-search",
+      ) as HTMLInputElement | null;
       input?.focus();
       input?.select();
     }, 0);
@@ -126,14 +141,22 @@ export function SiteExplorer({
           <TabTrigger value="ranked">Ranked cells</TabTrigger>
           <TabTrigger value="pinned">
             Pinned
-            <span className="num text-[10px] text-subtle">{pinned.length}/3</span>
+            <span className="num text-[10px] text-subtle">
+              {pinned.length}/3
+            </span>
           </TabTrigger>
         </Tabs.List>
 
-        <Tabs.Content value="ranked" className="flex min-h-0 flex-1 flex-col outline-none">
+        <Tabs.Content
+          value="ranked"
+          className="flex min-h-0 flex-1 flex-col outline-none"
+        >
           <RankedView />
         </Tabs.Content>
-        <Tabs.Content value="pinned" className="flex min-h-0 flex-1 flex-col outline-none">
+        <Tabs.Content
+          value="pinned"
+          className="flex min-h-0 flex-1 flex-col outline-none"
+        >
           <PinnedView onOpenCompare={onOpenCompare} />
         </Tabs.Content>
       </Tabs.Root>
@@ -141,7 +164,13 @@ export function SiteExplorer({
   );
 }
 
-function TabTrigger({ value, children }: { value: string; children: React.ReactNode }) {
+function TabTrigger({
+  value,
+  children,
+}: {
+  value: string;
+  children: React.ReactNode;
+}) {
   return (
     <Tabs.Trigger
       value={value}
@@ -155,8 +184,18 @@ function TabTrigger({ value, children }: { value: string; children: React.ReactN
 /* ------------------------------------------------------------ ranked view */
 
 function RankedView() {
-  const { index, loading, mw, cooling, lens, filters, setFilters, select, selected, flyTo } =
-    useAtlas();
+  const {
+    index,
+    loading,
+    mw,
+    cooling,
+    lens,
+    filters,
+    setFilters,
+    select,
+    selected,
+    flyTo,
+  } = useAtlas();
 
   const [showFilters, setShowFilters] = React.useState(false);
   const [debounced, setDebounced] = React.useState(filters.query);
@@ -222,10 +261,22 @@ function RankedView() {
       clear: () => toggleLand(c as LandClass),
     })),
     ...(filters.excludeFloodplain
-      ? [{ key: "flood", label: "No floodplain", clear: () => setFilters({ excludeFloodplain: false }) }]
+      ? [
+          {
+            key: "flood",
+            label: "No floodplain",
+            clear: () => setFilters({ excludeFloodplain: false }),
+          },
+        ]
       : []),
     ...(filters.excludeEj
-      ? [{ key: "ej", label: "No EJ areas", clear: () => setFilters({ excludeEj: false }) }]
+      ? [
+          {
+            key: "ej",
+            label: "No EJ areas",
+            clear: () => setFilters({ excludeEj: false }),
+          },
+        ]
       : []),
     ...(filters.maxGridKm !== null
       ? [
@@ -239,7 +290,12 @@ function RankedView() {
   ];
 
   const clearAll = () =>
-    setFilters({ landClasses: [], excludeFloodplain: false, excludeEj: false, maxGridKm: null });
+    setFilters({
+      landClasses: [],
+      excludeFloodplain: false,
+      excludeEj: false,
+      maxGridKm: null,
+    });
 
   const excludedCount = index ? index.all.filter((h) => h.excluded).length : 0;
   const kv = presetFor(mw).requiredKv;
@@ -277,7 +333,9 @@ function RankedView() {
               <X size={12} aria-hidden />
             </button>
           ) : (
-            <Kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2">/</Kbd>
+            <Kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2">
+              /
+            </Kbd>
           )}
         </label>
       </div>
@@ -293,7 +351,11 @@ function RankedView() {
           >
             <SlidersHorizontal size={11} aria-hidden className="text-subtle" />
             <span className="eyebrow">Filters</span>
-            {chips.length > 0 && <span className="num text-[10px] text-accent">{chips.length}</span>}
+            {chips.length > 0 && (
+              <span className="num text-[10px] text-accent">
+                {chips.length}
+              </span>
+            )}
           </button>
           {chips.length > 0 && (
             <button
@@ -304,12 +366,17 @@ function RankedView() {
             </button>
           )}
           {chips.length === 0 && (
-            <span className="ml-auto text-[11px] text-subtle">{showFilters ? "Hide" : "None"}</span>
+            <span className="ml-auto text-[11px] text-subtle">
+              {showFilters ? "Hide" : "None"}
+            </span>
           )}
         </div>
 
         {chips.length > 0 && (
-          <ul aria-label="Active filters" className="flex flex-wrap gap-1 px-2 pb-2">
+          <ul
+            aria-label="Active filters"
+            className="flex flex-wrap gap-1 px-2 pb-2"
+          >
             {chips.map((c) => (
               <li key={c.key}>
                 <button
@@ -326,14 +393,18 @@ function RankedView() {
         )}
 
         {showFilters && (
-          <div id="explorer-filters" className="border-t border-line px-2 pb-2 pt-1.5">
+          <div
+            id="explorer-filters"
+            className="border-t border-line px-2 pb-2 pt-1.5"
+          >
             <div className="mb-1 flex items-center gap-1.5">
               <span className="eyebrow">Land class, 2016</span>
               <InfoDot
                 content={
                   <>
-                    MassGIS 2016 Land Cover / Land Use at the cell centre. Land class says
-                    nothing about zoning or whether the land is available.
+                    MassGIS 2016 Land Cover / Land Use at the cell centre. Land
+                    class says nothing about zoning or whether the land is
+                    available.
                   </>
                 }
               />
@@ -372,8 +443,8 @@ function RankedView() {
             </div>
             {filters.excludeEj && (
               <p className="px-1.5 pb-1 text-[10px] leading-snug text-warn/80">
-                Filtering EJ areas out of a search is not the same as addressing them. The
-                order itself requires a community benefits agreement.
+                Filtering EJ areas out of a search is not the same as addressing
+                them. The order itself requires a community benefits agreement.
               </p>
             )}
 
@@ -405,7 +476,8 @@ function RankedView() {
         <div className="min-h-0 flex-1 overflow-y-auto">
           <table className="w-full table-fixed border-collapse text-[11px]">
             <caption className="sr-only">
-              Screening cells that pass the hard exclusions, ranked by suitability at {mw} MW
+              Screening cells that pass the hard exclusions, ranked by
+              suitability at {mw} MW
             </caption>
             <colgroup>
               <col className="w-[30px]" />
@@ -416,8 +488,19 @@ function RankedView() {
             </colgroup>
             <thead className="sticky top-0 z-10 bg-panel">
               <tr className="border-b border-line">
-                <SortHeader label="#" k="rank" sort={sort} onSort={toggleSort} />
-                <SortHeader label="Town" k="town" sort={sort} onSort={toggleSort} align="left" />
+                <SortHeader
+                  label="#"
+                  k="rank"
+                  sort={sort}
+                  onSort={toggleSort}
+                />
+                <SortHeader
+                  label="Town"
+                  k="town"
+                  sort={sort}
+                  onSort={toggleSort}
+                  align="left"
+                />
                 <SortHeader
                   label="Land"
                   k="land"
@@ -432,7 +515,12 @@ function RankedView() {
                   onSort={toggleSort}
                   hint={`Distance to the nearest mapped ${kv} kV+ line, the voltage Atlas assumes ${mw} MW needs. Distance is not capacity.`}
                 />
-                <SortHeader label="Score" k="score" sort={sort} onSort={toggleSort} />
+                <SortHeader
+                  label="Score"
+                  k="score"
+                  sort={sort}
+                  onSort={toggleSort}
+                />
               </tr>
             </thead>
             <tbody>
@@ -447,10 +535,14 @@ function RankedView() {
 
               {!loading && sorted.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-2.5 py-4 text-[11px] leading-snug text-subtle">
+                  <td
+                    colSpan={5}
+                    className="px-2.5 py-4 text-[11px] leading-snug text-subtle"
+                  >
                     No cell matches these filters. Hard exclusions remove{" "}
-                    {excludedCount.toLocaleString()} of {index ? index.size.toLocaleString() : "—"}{" "}
-                    cells before ranking starts.
+                    {excludedCount.toLocaleString()} of{" "}
+                    {index ? index.size.toLocaleString() : "—"} cells before
+                    ranking starts.
                   </td>
                 </tr>
               )}
@@ -471,7 +563,9 @@ function RankedView() {
                         isSel ? "bg-accent-muted" : "hover:bg-raised"
                       }`}
                     >
-                      <td className="num px-1.5 text-right text-[10px] text-subtle">{row.rank}</td>
+                      <td className="num px-1.5 text-right text-[10px] text-subtle">
+                        {row.rank}
+                      </td>
                       <td className="px-1.5">
                         <button
                           onClick={(e) => {
@@ -481,7 +575,9 @@ function RankedView() {
                           title={`${titleCase(row.hex.town)} · cell ${row.hex.h3}`}
                           className="flex w-full min-w-0 items-center gap-1 rounded-[6px] text-left"
                         >
-                          <span className={`truncate ${isSel ? "text-accent" : "text-fg"}`}>
+                          <span
+                            className={`truncate ${isSel ? "text-accent" : "text-fg"}`}
+                          >
                             {titleCase(row.hex.town)}
                           </span>
                           <RowFlags hex={row.hex} />
@@ -489,9 +585,15 @@ function RankedView() {
                       </td>
                       <td
                         className="px-1.5 text-muted"
-                        title={row.hex.land_class ? LAND_CLASS_LABEL[row.hex.land_class] : "Not available"}
+                        title={
+                          row.hex.land_class
+                            ? LAND_CLASS_LABEL[row.hex.land_class]
+                            : "Not available"
+                        }
                       >
-                        {row.hex.land_class ? LAND_SHORT[row.hex.land_class] : "n/a"}
+                        {row.hex.land_class
+                          ? LAND_SHORT[row.hex.land_class]
+                          : "n/a"}
                       </td>
                       <td className="num px-1.5 text-right text-muted">
                         {row.gridKm === null ? "n/a" : fmtKm(row.gridKm)}
@@ -544,11 +646,6 @@ function RankedView() {
             <ChevronRight size={13} aria-hidden />
           </Button>
         </div>
-
-        <p className="shrink-0 border-t border-line px-2.5 py-1.5 text-[10px] leading-snug text-subtle">
-          Ranking covers screening cells, not parcels or listings. Every cell shown still has
-          unverified grid capacity and unknown zoning.
-        </p>
       </div>
     </>
   );
@@ -577,7 +674,10 @@ function SortHeader({
         align === "left" ? "justify-start" : "justify-end"
       } ${active ? "text-fg" : "text-subtle hover:text-muted"}`}
     >
-      <span className="eyebrow" style={active ? { color: "var(--color-fg)" } : undefined}>
+      <span
+        className="eyebrow"
+        style={active ? { color: "var(--color-fg)" } : undefined}
+      >
         {label}
       </span>
       {active &&
@@ -591,7 +691,9 @@ function SortHeader({
   return (
     <th
       scope="col"
-      aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+      aria-sort={
+        active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"
+      }
       className="px-1.5 font-normal"
     >
       {hint ? <Hint content={hint}>{button}</Hint> : button}
@@ -613,7 +715,10 @@ function RowFlags({ hex }: { hex: HexRecord }) {
         </Flag>
       )}
       {hex.coastal_slr && (
-        <Flag tone="warn" title="Inside the ≤3 ft sea level rise inundation extent">
+        <Flag
+          tone="warn"
+          title="Inside the ≤3 ft sea level rise inundation extent"
+        >
           SLR
         </Flag>
       )}
@@ -624,7 +729,16 @@ function RowFlags({ hex }: { hex: HexRecord }) {
 /* ------------------------------------------------------------ pinned view */
 
 function PinnedView({ onOpenCompare }: { onOpenCompare: () => void }) {
-  const { index, pinned, togglePin, clearPins, scoreFor, select, selected, mw } = useAtlas();
+  const {
+    index,
+    pinned,
+    togglePin,
+    clearPins,
+    scoreFor,
+    select,
+    selected,
+    mw,
+  } = useAtlas();
 
   const rows = React.useMemo(
     () =>
@@ -632,7 +746,11 @@ function PinnedView({ onOpenCompare }: { onOpenCompare: () => void }) {
         ? pinned
             .map((h3) => index.get(h3))
             .filter((h): h is HexRecord => Boolean(h))
-            .map((hex) => ({ hex, result: scoreFor(hex), gridKm: gridKm(hex, mw) }))
+            .map((hex) => ({
+              hex,
+              result: scoreFor(hex),
+              gridKm: gridKm(hex, mw),
+            }))
         : [],
     [index, pinned, scoreFor, mw],
   );
@@ -642,8 +760,8 @@ function PinnedView({ onOpenCompare }: { onOpenCompare: () => void }) {
       <div className="px-3 py-4 text-[12px] leading-snug text-muted">
         <p>Nothing pinned yet.</p>
         <p className="mt-1.5 text-[11px] text-subtle">
-          Select a cell and press <Kbd>P</Kbd> or use Pin in the inspector. Pin two or three to
-          compare them in the same units.
+          Select a cell and press <Kbd>P</Kbd> or use Pin in the inspector. Pin
+          two or three to compare them in the same units.
         </p>
       </div>
     );
@@ -665,10 +783,16 @@ function PinnedView({ onOpenCompare }: { onOpenCompare: () => void }) {
               <th scope="col" className="eyebrow px-2 text-left font-semibold">
                 Site
               </th>
-              <th scope="col" className="eyebrow px-1.5 text-right font-semibold">
+              <th
+                scope="col"
+                className="eyebrow px-1.5 text-right font-semibold"
+              >
                 Grid
               </th>
-              <th scope="col" className="eyebrow px-1.5 text-right font-semibold">
+              <th
+                scope="col"
+                className="eyebrow px-1.5 text-right font-semibold"
+              >
                 Score
               </th>
               <th scope="col">
@@ -690,10 +814,14 @@ function PinnedView({ onOpenCompare }: { onOpenCompare: () => void }) {
                       onClick={() => select(hex.h3, { fly: true })}
                       className="block w-full min-w-0 rounded-[6px] text-left"
                     >
-                      <span className={`block truncate ${isSel ? "text-accent" : "text-fg"}`}>
+                      <span
+                        className={`block truncate ${isSel ? "text-accent" : "text-fg"}`}
+                      >
                         {titleCase(hex.town)}
                       </span>
-                      <span className="num block truncate text-[10px] text-subtle">{hex.h3}</span>
+                      <span className="num block truncate text-[10px] text-subtle">
+                        {hex.h3}
+                      </span>
                     </button>
                   </td>
                   <td className="num px-1.5 text-right text-muted">
@@ -730,7 +858,11 @@ function PinnedView({ onOpenCompare }: { onOpenCompare: () => void }) {
           className="flex-1"
           onClick={onOpenCompare}
           disabled={rows.length < 2}
-          title={rows.length < 2 ? "Pin at least two sites to compare" : "Compare pinned sites (C)"}
+          title={
+            rows.length < 2
+              ? "Pin at least two sites to compare"
+              : "Compare pinned sites (C)"
+          }
         >
           <Columns2 size={12} aria-hidden />
           Compare {rows.length}
@@ -742,7 +874,9 @@ function PinnedView({ onOpenCompare }: { onOpenCompare: () => void }) {
         </Button>
       </div>
       {rows.length < 2 && (
-        <p className="px-2 pb-2 text-[10.5px] text-subtle">Pin one more site to compare.</p>
+        <p className="px-2 pb-2 text-[10.5px] text-subtle">
+          Pin one more site to compare.
+        </p>
       )}
     </div>
   );

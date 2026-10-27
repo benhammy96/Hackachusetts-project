@@ -96,11 +96,13 @@ export function FactorRow({ factor: f }: { factor: FactorResult }) {
             <p className="min-w-0 flex-1 text-[11.5px] leading-snug text-muted">
               {f.raw}
             </p>
-            <Hint content={describeStatus(f.status)}>
-              <span className="cursor-help">
-                <StatusTag status={f.status} />
-              </span>
-            </Hint>
+            {f.status !== "verified" && (
+              <Hint content={describeStatus(f.status)}>
+                <span className="cursor-help">
+                  <StatusTag status={f.status} />
+                </span>
+              </Hint>
+            )}
           </div>
           {f.note && (
             <p className="text-[11px] leading-snug text-subtle">{f.note}</p>

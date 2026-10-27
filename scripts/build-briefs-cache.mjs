@@ -21,7 +21,7 @@ import { latLngToCell } from "h3-js";
 const BASE = process.env.ATLAS_URL ?? "http://localhost:3310";
 const DATA = path.join(process.cwd(), "public", "data");
 
-const LANGS = ["en", "es", "pt", "ht", "vi", "zh", "sq"];
+const LANGS = ["en"];
 const SITES = [
   { name: "Holyoke, near MGHPCC", lat: 42.2025, lng: -72.6079 },
   { name: "Chelsea, residential", lat: 42.3918, lng: -71.0328 },

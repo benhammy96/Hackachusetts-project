@@ -6,7 +6,7 @@ import { Copy, Loader2, RefreshCw, X } from "lucide-react";
 import { toast } from "sonner";
 import { useAtlas } from "./atlas-provider";
 import { Button } from "./ui/primitives";
-import { LANGUAGES, type Audience, type LangCode } from "@/lib/brief";
+import type { Audience } from "@/lib/brief";
 import { Markdown } from "./markdown";
 
 export function BriefPanel({
@@ -17,7 +17,7 @@ export function BriefPanel({
   onOpenChange: (v: boolean) => void;
 }) {
   const { selected, mw, cooling, lens } = useAtlas();
-  const [lang, setLang] = React.useState<LangCode>("en");
+  const lang = "en" as const;
   const [audience, setAudience] = React.useState<Audience>("community");
   const [text, setText] = React.useState("");
   const [, setSource] = React.useState<"bedrock" | "offline" | "cache" | null>(
@@ -178,25 +178,6 @@ export function BriefPanel({
                   }`}
                 >
                   {a === "community" ? "For residents" : "For developers"}
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-1.5 flex flex-wrap items-center gap-1">
-              {LANGUAGES.map((l) => (
-                <button
-                  key={l.code}
-                  onClick={() => setLang(l.code)}
-                  aria-pressed={lang === l.code}
-                  lang={l.code}
-                  title={l.label}
-                  className={`rounded-full border px-2.5 py-[3px] text-[11px] transition-colors ${
-                    lang === l.code
-                      ? "border-accent/60 bg-accent-muted text-accent"
-                      : "border-line bg-raised/50 text-muted hover:border-subtle"
-                  }`}
-                >
-                  {l.endonym}
                 </button>
               ))}
             </div>

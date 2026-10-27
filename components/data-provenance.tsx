@@ -4,8 +4,8 @@ import * as React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { ExternalLink, X } from "lucide-react";
 import { useAtlas } from "./atlas-provider";
-import { Button, StatusTag, type Status } from "./ui/primitives";
-import { fmtInt, fmtNumber, fmtPercent, NOT_AVAILABLE } from "@/lib/format";
+import { Button } from "./ui/primitives";
+import { fmtInt, fmtNumber } from "@/lib/format";
 import {
   CONDITIONAL_FIELD,
   SOURCE_ROLE_LABEL,
@@ -17,8 +17,6 @@ import { cn } from "@/lib/utils";
 
 interface FieldRow {
   field: string;
-  status: Status;
-  coverage: number;
 }
 
 interface DatasetEntry {
@@ -33,23 +31,15 @@ interface Groups {
   scored: DatasetEntry[];
   exclusion: DatasetEntry[];
   basemap: DatasetEntry[];
-  computed: FieldRow[];
-  unavailable: FieldRow[];
 }
 
 function groupMeta(meta: DataMeta): Groups {
   const bySource = new Map<string, FieldRow[]>();
-  const computed: FieldRow[] = [];
-  const unavailable: FieldRow[] = [];
 
   for (const [field, m] of Object.entries(meta.fields)) {
-    const row = { field, status: m.status as Status, coverage: m.coverage };
     if (m.source) {
+      const row = { field };
       bySource.set(m.source, [...(bySource.get(m.source) ?? []), row]);
-    } else if (m.status === "unavailable") {
-      unavailable.push(row);
-    } else {
-      computed.push(row);
     }
   }
 
@@ -102,7 +92,7 @@ function groupMeta(meta: DataMeta): Groups {
   }
 
   exclusion.sort((a, b) => a.src.name.localeCompare(b.src.name));
-  return { scored, exclusion, basemap, computed, unavailable };
+  return { scored, exclusion, basemap };
 }
 
 /** Where every field came from, how fresh it is, and what is missing. */
@@ -169,27 +159,9 @@ export function DataProvenance({
 
             {meta && groups && (
               <>
-                <Section title="Known limits of this build">
-                  <ul className="space-y-2 rounded-[8px] border border-line bg-raised/40 px-4 py-3">
-                    {meta.notes.map((n) => (
-                      <li
-                        key={n}
-                        className="flex gap-2.5 text-[12px] leading-relaxed text-muted"
-                      >
-                        <span
-                          aria-hidden
-                          className="mt-[8px] h-1 w-1 shrink-0 rounded-full bg-subtle"
-                        />
-                        {n}
-                      </li>
-                    ))}
-                  </ul>
-                </Section>
-
                 <Section
                   title="Measurements per cell"
                   count={groups.scored.length}
-                  hint="Percentages are the share of grid cells that have a value."
                 >
                   <DatasetList entries={groups.scored} />
                 </Section>
@@ -200,18 +172,6 @@ export function DataProvenance({
                     count={groups.exclusion.length}
                   >
                     <DatasetList entries={groups.exclusion} />
-                  </Section>
-                )}
-
-                {(groups.computed.length > 0 ||
-                  groups.unavailable.length > 0) && (
-                  <Section title="Computed by Atlas, or not available">
-                    <div className="rounded-[8px] border border-line px-4 py-2">
-                      <FieldTable
-                        rows={[...groups.computed, ...groups.unavailable]}
-                        showStatus
-                      />
-                    </div>
                   </Section>
                 )}
 
@@ -246,12 +206,10 @@ export function DataProvenance({
 function Section({
   title,
   count,
-  hint,
   children,
 }: {
   title: string;
   count?: number;
-  hint?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -265,7 +223,6 @@ function Section({
             </span>
           )}
         </h3>
-        {hint && <p className="text-[11px] text-subtle">{hint}</p>}
       </div>
       {children}
     </section>
@@ -306,12 +263,10 @@ function DatasetRow({ entry }: { entry: DatasetEntry }) {
             {src.publisher} · {src.vintage} · {src.license}
           </p>
         </div>
-        <StatusTag status={src.status as Status} className="mt-0.5" />
       </div>
 
       {src.caveat && (
         <p className="mt-2 text-[12px] leading-relaxed text-muted">
-          <span className="font-medium text-warn">Caveat. </span>
           {src.caveat}
         </p>
       )}
@@ -319,30 +274,17 @@ function DatasetRow({ entry }: { entry: DatasetEntry }) {
         <p className="mt-2 text-[12px] leading-relaxed text-muted">{role}</p>
       )}
 
-      {fields.length > 0 && (
-        <FieldTable
-          rows={fields}
-          sourceStatus={src.status as Status}
-          className="mt-2.5"
-        />
-      )}
+      {fields.length > 0 && <FieldTable rows={fields} className="mt-2.5" />}
     </li>
   );
 }
 
-/**
- * Field name and coverage, two columns wide. A field's status is shown only
- * when it differs from its source's, e.g. a modelled sum of verified blocks.
- */
+/** Reader-facing field names grouped under each publisher. */
 function FieldTable({
   rows,
-  sourceStatus,
-  showStatus,
   className,
 }: {
   rows: FieldRow[];
-  sourceStatus?: Status;
-  showStatus?: boolean;
   className?: string;
 }) {
   return (
@@ -355,13 +297,11 @@ function FieldTable({
     >
       {rows.map((f) => {
         const conditional = CONDITIONAL_FIELD[f.field];
-        const tagged =
-          showStatus || (sourceStatus && f.status !== sourceStatus);
         return (
           <div
             key={f.field}
             className={cn(
-              "flex items-baseline justify-between gap-3 border-t border-line/60 py-1.5 first:border-t-0",
+              "border-t border-line/60 py-1.5 first:border-t-0",
               rows.length > 1 && "sm:[&:nth-child(2)]:border-t-0",
             )}
           >
@@ -369,26 +309,12 @@ function FieldTable({
               <span className="text-[12px] text-fg/90" title={f.field}>
                 {fieldLabel(f.field)}
               </span>
-              {tagged && <StatusTag status={f.status} className="ml-2" />}
               {conditional && (
                 <span className="block text-[11px] text-subtle">
                   {conditional}
                 </span>
               )}
             </dt>
-            <dd
-              className={cn(
-                "num shrink-0 text-[12px]",
-                f.coverage === 0
-                  ? "text-unknown"
-                  : f.coverage < 0.9 && !conditional
-                    ? "text-warn"
-                    : "text-muted",
-              )}
-              title="Share of grid cells with a value"
-            >
-              {f.coverage === 0 ? NOT_AVAILABLE : fmtPercent(f.coverage)}
-            </dd>
           </div>
         );
       })}
@@ -409,23 +335,14 @@ function EconomicTable({
       <table className="w-full border-collapse text-left">
         <thead className="bg-raised/50">
           <tr>
-            <th scope="col" className="eyebrow w-[46%] px-4 py-2 font-semibold">
+            <th scope="col" className="eyebrow px-4 py-2 font-semibold">
               Input
             </th>
             <th
               scope="col"
-              className="eyebrow px-3 py-2 text-right font-semibold"
+              className="eyebrow w-[180px] px-4 py-2 text-right font-semibold"
             >
               Value
-            </th>
-            <th scope="col" className="eyebrow w-[26%] px-3 py-2 font-semibold">
-              Basis
-            </th>
-            <th
-              scope="col"
-              className="eyebrow px-4 py-2 text-right font-semibold"
-            >
-              Status
             </th>
           </tr>
         </thead>
@@ -434,42 +351,31 @@ function EconomicTable({
             <tr key={a.label} className="border-t border-line align-top">
               <th scope="row" className="px-4 py-2.5 font-normal">
                 <span className="text-[12.5px] text-fg">{a.label}</span>
+                {a.source_url && (
+                  <span className="mt-0.5 block text-[11px] text-muted">
+                    <a
+                      href={a.source_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-baseline gap-1 hover:text-accent"
+                    >
+                      {a.source}
+                      <ExternalLink size={9} aria-hidden className="shrink-0" />
+                    </a>
+                    {a.period ? ` · ${a.period}` : ""}
+                  </span>
+                )}
                 {a.caveat && (
                   <span className="mt-0.5 block text-[11.5px] leading-snug text-subtle">
                     {a.caveat}
                   </span>
                 )}
               </th>
-              <td className="num whitespace-nowrap px-3 py-2.5 text-right text-[12.5px] text-fg">
+              <td className="num whitespace-nowrap px-4 py-2.5 text-right text-[12.5px] text-fg">
                 {fmtNumber(a.value)}
                 <span className="mt-0.5 block font-sans text-[11px] text-subtle">
                   {a.unit}
                 </span>
-              </td>
-              <td className="px-3 py-2.5 text-[11.5px] text-muted">
-                {a.source_url ? (
-                  <a
-                    href={a.source_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-baseline gap-1 hover:text-accent"
-                  >
-                    {a.source}
-                    <ExternalLink
-                      size={10}
-                      aria-hidden
-                      className="shrink-0 text-subtle"
-                    />
-                  </a>
-                ) : (
-                  a.source
-                )}
-                {a.period && (
-                  <span className="block text-subtle">{a.period}</span>
-                )}
-              </td>
-              <td className="px-4 py-2.5 text-right">
-                <StatusTag status={a.status as Status} />
               </td>
             </tr>
           ))}

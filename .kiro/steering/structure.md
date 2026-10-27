@@ -25,7 +25,7 @@ lib/
   economics.ts    energy, cost, carbon, water, sensitivity band
   alternatives.ts find-a-better-spot and explorer ranking
   brief.ts        deterministic brief composer + Bedrock system prompt
-  brief-i18n.ts   translated labels and questions for 7 languages
+  brief-i18n.ts   English labels and questions for deterministic briefs
   format.ts       number and unit formatting
   server-data.ts  filesystem loader for the API route
 app/
